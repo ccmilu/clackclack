@@ -1,0 +1,17 @@
+# 运行时产物
+hooks/events.log
+
+# 本地 Claude Code 个人设置（包含端口等机器相关配置时）
+.claude/settings.local.json
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# macOS
+.DS_Store
+
+# 编辑器
+.vscode/
+.idea/
