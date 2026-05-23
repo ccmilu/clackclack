@@ -1,0 +1,110 @@
+<!--
+  E 状态（报错）—— 横屏布局
+  =============================
+  viewBox 改成 90x45（2:1，匹配 TFT 160x80）
+  螃蟹 + 烟雾整体用 scale(2.5) 放大，以底边中心为定点
+  ERROR 文字从螃蟹"头顶"移到"右侧"
+  其他细节（地影、闪烁节奏、动画速度）全部保持 clawd 原作
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-15 -25 90 45">
+  <defs>
+    <style>
+      .body-exhausted {
+        transform-origin: 7.5px 15px;
+        animation: heavy-breathe 2.5s infinite ease-in-out;
+      }
+      .arm-fan {
+        transform-origin: 14px 10px;
+        animation: fan-self 0.4s infinite alternate ease-in-out;
+      }
+      .smoke {
+        opacity: 0;
+        /* 飘动距离缩短了，时长 3s→4s 让每秒视觉位移回到原节奏 */
+        animation: puff-smoke 4s infinite ease-out;
+      }
+      .sm1 { animation-delay: 0s; }
+      .sm2 { animation-delay: 1s; }
+      .sm3 { animation-delay: 2s; }
+
+      .error-warning {
+        animation: error-flash 0.8s infinite ease-in-out;
+      }
+
+      @keyframes heavy-breathe {
+        0%, 100% { transform: scale(1, 1) translateY(0); }
+        50% { transform: scale(1.05, 0.9) translateY(1.5px); }
+      }
+      @keyframes fan-self {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(-60deg); }
+      }
+      /* 起点 y 6→8（贴螃蟹头）、终点 y -15→-2（飘出屏顶才消散）：
+         在 group 放大 + ty=-32.5 后整体往下挪，让烟雾在屏内可见 */
+      @keyframes puff-smoke {
+        0% { transform: translate(7.5px, 8px) scale(0.5); opacity: 0; }
+        20% { opacity: 0.6; }
+        100% { transform: translate(7.5px, -2px) scale(2); opacity: 0; }
+      }
+      @keyframes error-flash {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.15; }
+      }
+    </style>
+    <g id="smoke-puff">
+      <rect x="-1" y="-1" width="2" height="2" fill="#B0BEC5" rx="0.5"/>
+      <rect x="0"  y="-2" width="2" height="2" fill="#CFD8DC" rx="0.5"/>
+    </g>
+  </defs>
+
+  <!--
+    放大组：螃蟹 + 烟雾 + 地影整体 scale 2.5x。
+    目标：螃蟹中心落在屏垂直中点（viewBox y=-2.5），与 ERROR 文字水平对齐。
+      放大前螃蟹中心 (7.5, 12)
+      放大后要到 (7.5, -2.5)
+      → tx = 7.5 - 2.5*7.5 = -11.25
+      → ty = -2.5 - 2.5*12 = -32.5
+    地影沿用 clawd 原作宽度 17，放进 group 内随螃蟹一起放大并保持在脚下。
+  -->
+  <g transform="translate(-11.25, -32.5) scale(2.5)">
+    <!-- 地面阴影（在 group 内，跟着螃蟹位置走） -->
+    <rect x="-1" y="15" width="17" height="1" fill="#000000" opacity="0.5"/>
+
+    <!-- 螃蟹头顶的烟雾 -->
+    <g>
+      <use href="#smoke-puff" class="smoke sm1"/>
+      <use href="#smoke-puff" class="smoke sm2" transform="translate(-2, 0)"/>
+      <use href="#smoke-puff" class="smoke sm3" transform="translate(2, 0)"/>
+    </g>
+
+    <!-- 螃蟹本体 -->
+    <g class="body-exhausted">
+      <g fill="#DE886D">
+        <rect x="3"  y="9" width="1" height="1"/>
+        <rect x="5"  y="9" width="1" height="1"/>
+        <rect x="9"  y="9" width="1" height="1"/>
+        <rect x="11" y="9" width="1" height="1"/>
+      </g>
+      <g fill="#DE886D">
+        <rect x="1"  y="10" width="13" height="5"/>
+        <rect x="-1" y="13" width="2"  height="2"/>
+      </g>
+      <g class="arm-fan">
+        <rect x="13" y="11" width="2" height="2" fill="#DE886D"/>
+      </g>
+      <g fill="#000000">
+        <rect x="3"  y="12" width="0.6" height="2.2" transform="rotate(45 3.3 13.1)"/>
+        <rect x="3"  y="12" width="0.6" height="2.2" transform="rotate(-45 3.3 13.1)"/>
+        <rect x="10" y="12" width="0.6" height="2.2" transform="rotate(45 10.3 13.1)"/>
+        <rect x="10" y="12" width="0.6" height="2.2" transform="rotate(-45 10.3 13.1)"/>
+      </g>
+    </g>
+  </g>
+
+  <!-- ERROR 警告字（移到螃蟹右侧，x 45→55 拉开和螃蟹的间距，利用右侧剩余空间） -->
+  <g class="error-warning">
+    <text x="55" y="2" text-anchor="middle"
+          font-family="'Söhne', 'Helvetica Neue', Arial, sans-serif"
+          font-size="11" font-weight="900" fill="#FF3B30"
+          letter-spacing="-0.5">ERROR</text>
+  </g>
+</svg>

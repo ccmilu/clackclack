@@ -1,6 +1,9 @@
 # 运行时产物
 hooks/events.log
 
+# 构建产物（资产管线生成的像素数据 + 调试 PNG，由 build_assets.py 重新生成）
+build/
+
 # 本地 Claude Code 个人设置（包含端口等机器相关配置时）
 .claude/settings.local.json
 

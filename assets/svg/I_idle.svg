@@ -1,0 +1,171 @@
+<!--
+  I 状态（空闲）—— 横屏布局
+  =============================
+  来源：clawd-idle-yawn.svg（哈欠 + 呼吸 + 流泪 + 闭眼）
+  改动：
+  - viewBox 45x45 → 90x45（2:1 匹配 TFT 160x80）
+  - 螃蟹 + 烟雾 + 地影 整体放在 scale 2.5 group 里（同 E 状态布局，方便和 ERROR 视觉一致）
+  - 所有 `forwards`（一次性）→ `infinite`（循环），动画速度 3.8s 不动
+  - 右侧加 IDLE 字（柔和蓝灰色，区别于 E 的红色 ERROR）
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-15 -25 90 45">
+  <defs>
+    <style>
+      .action-body {
+        transform-origin: 7.5px 13px;
+        animation: action-body-yawn 3.8s ease-in-out infinite;
+      }
+      .breathe-anim {
+        transform-origin: 7.5px 13px;
+        animation: breathe 3.2s infinite ease-in-out;
+      }
+      .shadow-anim {
+        transform-origin: 7.5px 15.5px;
+        animation: shadow-yawn 3.8s ease-in-out infinite;
+      }
+      .arm-l {
+        transform-origin: 1px 10px;
+        animation: arm-l-yawn 3.8s ease-in-out infinite;
+      }
+      .arm-r {
+        transform-origin: 14px 10px;
+        animation: arm-r-yawn 3.8s ease-in-out infinite;
+      }
+      .eyes-look {
+        animation: eye-track-yawn 3.8s ease-in-out infinite;
+      }
+      .eyes-blink {
+        transform-origin: 7.5px 9px;
+        animation: eye-blink-yawn 3.8s linear infinite;
+      }
+      .yawn-mouth {
+        transform-origin: 7.5px 11px;
+        animation: yawn-mouth-anim 3.8s ease-in-out infinite;
+        opacity: 0;
+      }
+      .yawn-tear {
+        animation: tear-fall 3.8s ease-in-out infinite;
+        opacity: 0;
+      }
+
+      /* IDLE 字：缓慢呼吸式淡入淡出，比 ERROR 闪烁柔和得多 */
+      .idle-label {
+        animation: idle-pulse 3.8s ease-in-out infinite;
+        transform-origin: 55px 0px;
+      }
+
+      @keyframes breathe {
+        0%, 100% { transform: scale(1, 1) translate(0, 0); }
+        50% { transform: scale(1.02, 0.98) translate(0, 0.5px); }
+      }
+      @keyframes action-body-yawn {
+        0%, 12% { transform: scale(1, 1) translate(0, 0); }
+        32% { transform: scale(0.95, 1.05) translate(0, -1px); }
+        50% { transform: scale(0.9, 1.1) translate(0, -2px); }
+        78%, 100% { transform: scale(1.05, 0.95) translate(0, 1px); }
+      }
+      @keyframes shadow-yawn {
+        0%, 12% { transform: scaleX(1); opacity: 0.5; }
+        32% { transform: scaleX(0.95); opacity: 0.45; }
+        50% { transform: scaleX(0.9); opacity: 0.4; }
+        78%, 100% { transform: scaleX(1.05); opacity: 0.55; }
+      }
+      @keyframes eye-track-yawn {
+        0%, 18% { transform: translate(0, 0); }
+        32%, 68% { transform: translate(0, -1px); }
+        82%, 100% { transform: translate(0, 0); }
+      }
+      /* 眨眼模式：开头睁眼 → 24% 急速闭一下 → 30% 睁回 → 42% 开始闭眼睡觉，持续到末尾。
+         100% 必须保持闭眼（scaleY 0.1），不能回到睁眼，否则末帧会出现急速睁眼"闪烁"。 */
+      @keyframes eye-blink-yawn {
+        0%, 18% { transform: scaleY(1); }
+        24% { transform: scaleY(0.1); }
+        30% { transform: scaleY(1); }
+        42%, 100% { transform: scaleY(0.1); }
+      }
+      @keyframes arm-l-yawn {
+        0%, 12% { transform: translate(0, 0) rotate(0deg); }
+        38% { transform: translate(-1px, -2px) rotate(45deg); }
+        50% { transform: translate(-2px, -3px) rotate(80deg); }
+        78%, 100% { transform: translate(0, 1px) rotate(-15deg); }
+      }
+      @keyframes arm-r-yawn {
+        0%, 12% { transform: translate(0, 0) rotate(0deg); }
+        38% { transform: translate(1px, -2px) rotate(-45deg); }
+        50% { transform: translate(2px, -3px) rotate(-80deg); }
+        78%, 100% { transform: translate(0, 1px) rotate(15deg); }
+      }
+      @keyframes yawn-mouth-anim {
+        0%, 18% { opacity: 0; transform: scale(0.1); }
+        32% { opacity: 1; transform: scale(0.5, 0.2); }
+        50% { opacity: 1; transform: scale(1.1, 1.4); }
+        68% { opacity: 1; transform: scale(0.6, 0.4); }
+        80%, 100% { opacity: 0; transform: scale(0.1); }
+      }
+      @keyframes tear-fall {
+        0%, 45% { opacity: 0; transform: translateY(0); }
+        50% { opacity: 1; transform: translateY(0); }
+        68% { opacity: 1; transform: translateY(2.5px); }
+        80%, 100% { opacity: 0; transform: translateY(3px); }
+      }
+      @keyframes idle-pulse {
+        0%, 100% { opacity: 0.85; }
+        50% { opacity: 0.35; }
+      }
+    </style>
+  </defs>
+
+  <!--
+    放大组：和 E 状态保持完全一致的布局参数（translate -11.25 -32.5, scale 2.5）
+    这样 6 个状态切换时螃蟹位置不会跳动。
+  -->
+  <!-- ty=-29 而不是 E_error 的 -32.5：yawn 螃蟹腿更长，几何中心 y≈10.5（不是 12），
+       要让"yawn 螃蟹中心"落在屏中央，ty 要相应上调 -->
+  <g transform="translate(-11.25, -29) scale(2.5)">
+    <!-- 地影 -->
+    <rect id="ground-shadow" class="shadow-anim" x="3" y="15" width="9" height="1" fill="#000000" opacity="0.5"/>
+
+    <!-- 静态腿（哈欠时腿不动） -->
+    <g id="legs" fill="#DE886D">
+      <rect x="3"  y="12" width="1" height="3"/>
+      <rect x="5"  y="12" width="1" height="3"/>
+      <rect x="9"  y="12" width="1" height="3"/>
+      <rect x="11" y="12" width="1" height="3"/>
+    </g>
+
+    <!-- 上半身（哈欠动作） -->
+    <g class="action-body">
+      <g class="breathe-anim">
+        <!-- 躯干 -->
+        <rect id="torso" x="2" y="6" width="11" height="7" fill="#DE886D"/>
+        <!-- 左臂（向左上伸展） -->
+        <g class="arm-l">
+          <rect x="0" y="9" width="2" height="2" fill="#DE886D"/>
+        </g>
+        <!-- 右臂（向右上伸展） -->
+        <g class="arm-r">
+          <rect x="13" y="9" width="2" height="2" fill="#DE886D"/>
+        </g>
+        <!-- 张大的嘴（默认隐藏） -->
+        <rect class="yawn-mouth" x="6" y="10" width="3" height="2" fill="#000000"/>
+        <!-- 眼睛（睁眼/眨眼/闭眼） -->
+        <g class="eyes-look" fill="#000000">
+          <g class="eyes-blink">
+            <rect x="4"  y="8" width="1" height="2"/>
+            <rect x="10" y="8" width="1" height="2"/>
+          </g>
+        </g>
+        <!-- 眼泪 -->
+        <rect class="yawn-tear" x="3.5" y="10" width="1" height="1" fill="#40C4FF"/>
+      </g>
+    </g>
+  </g>
+
+  <!-- IDLE 标签（柔和蓝灰色，缓慢呼吸式淡入淡出） -->
+  <g class="idle-label">
+    <text x="55" y="2" text-anchor="middle"
+          font-family="'Söhne', 'Helvetica Neue', Arial, sans-serif"
+          font-size="11" font-weight="900" fill="#6B8DB0"
+          letter-spacing="-0.5">IDLE</text>
+  </g>
+</svg>

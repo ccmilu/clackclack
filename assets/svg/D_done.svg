@@ -1,0 +1,161 @@
+<!--
+  D 状态（任务完成）—— 横屏布局
+  =============================
+  来源：clawd-mini-happy.svg（开心挥手 + 举黄花 + ^^眼 + 周围像素闪光）
+  改动：
+  - viewBox 45x45 → 90x45（2:1 匹配 TFT 160x80）
+  - 整体 scale 2.3，ty=-13 让螃蟹偏屏下 1/3，保留花和顶部 sparkle 空间
+    - 花顶 source y=4.2 → target y = -13+9.66 = -3.34（在屏内）
+    - sparkle 顶 source y=-6.5 → 上部分裁掉但下半仍可见
+    - 脚底 source y=15 → target = 21.5（裁约 1.5 单位）
+  - 保留原 SVG 的 rotate(-12, 7.5, 15) 让螃蟹整体歪头（开心感）
+  - 右侧加 DONE 标签（绿色 + 缓慢闪烁，符合计划书"完成=绿色"）
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-15 -25 90 45">
+  <defs>
+    <style>
+      .breathe-anim {
+        transform-origin: 7.5px 13px;
+        animation: breathe 3.2s infinite ease-in-out;
+      }
+
+      /* 开心挥手——快速来回挥 */
+      .arm-happy {
+        transform-origin: 2px 9px;
+        animation: arm-happy-wave 0.4s infinite alternate ease-in-out;
+      }
+
+      /* ^^ 开心眯眼，偶尔完整眨一下 */
+      .eyes-happy-blink {
+        transform-origin: 7.5px 9px;
+        animation: happy-blink 3s infinite ease-in-out;
+      }
+
+      /* 像素闪光：中心 + 4 个外围十字，各自错开闪烁 */
+      .spark-center {
+        opacity: 0;
+        animation: flash-center 1.5s infinite step-end;
+        animation-delay: var(--delay, 0s);
+      }
+      .spark-outer {
+        opacity: 0;
+        animation: flash-outer 1.5s infinite step-end;
+        animation-delay: var(--delay, 0s);
+      }
+
+      /* DONE 标签：和其他状态一致的呼吸式闪烁 */
+      .done-label {
+        animation: done-pulse 3.2s ease-in-out infinite;
+        transform-origin: 55px 0px;
+      }
+
+      @keyframes breathe {
+        0%, 100% { transform: scale(1, 1) translate(0, 0); }
+        50% { transform: scale(1.02, 0.98) translate(0, 0.5px); }
+      }
+      @keyframes arm-happy-wave {
+        0% { transform: rotate(22deg); }
+        100% { transform: rotate(-8deg); }
+      }
+      @keyframes happy-blink {
+        0%, 12%, 30%, 42%, 100% { transform: scaleY(1); }
+        6%  { transform: scaleY(0.1); }
+        36% { transform: scaleY(0.1); }
+      }
+      @keyframes flash-center {
+        0%   { opacity: 0; }
+        10%  { opacity: 1; }
+        30%  { opacity: 0; }
+        100% { opacity: 0; }
+      }
+      @keyframes flash-outer {
+        0%   { opacity: 0; }
+        20%  { opacity: 1; }
+        40%  { opacity: 0; }
+        100% { opacity: 0; }
+      }
+      @keyframes done-pulse {
+        0%, 100% { opacity: 0.9; }
+        50%      { opacity: 0.45; }
+      }
+    </style>
+
+    <!-- 可重用的像素闪光（中心 1×1 + 4 个外围 1×1 组成十字） -->
+    <g id="px-sparkle">
+      <rect class="spark-center" x="-0.5" y="-0.5" width="1" height="1" />
+      <path class="spark-outer" d="M -0.5,-1.5 h1 v1 h-1 z
+                                   M -0.5,0.5 h1 v1 h-1 z
+                                   M -1.5,-0.5 h1 v1 h-1 z
+                                   M 0.5,-0.5 h1 v1 h-1 z" />
+    </g>
+  </defs>
+
+  <!--
+    放大组：scale 2.4（接近 T 的 2.4，视觉尺寸一致）+ 偏左布局。
+    tx=-4：螃蟹中心 target_x = -4+18 = 14（屏 32%，比 T 的 25% 稍居中但仍偏左）
+    ty=-15.5：花顶下移后 source y=6.2 → target = -15.5+14.88 = -0.62（屏中部）
+              脚底 source y=15 → target = 20.5（略出 0.5 单位，几乎不可见）
+    sparkle1 (源在 x=-3) 最左像素 source x=-4.5 → target_x = -14.8（刚好在 viewBox 内）
+  -->
+  <g transform="translate(0, -18.5) scale(2.4)">
+    <!-- 螃蟹整体歪头 12 度（开心姿势） -->
+    <g transform="rotate(-12, 7.5, 15)">
+      <!-- 腿 -->
+      <g fill="#DE886D">
+        <rect x="3"  y="11" width="1" height="4"/>
+        <rect x="5"  y="11" width="1" height="4"/>
+        <rect x="9"  y="11" width="1" height="4"/>
+        <rect x="11" y="11" width="1" height="4"/>
+      </g>
+
+      <g id="body-js">
+        <g class="breathe-anim">
+          <!-- 躯干 -->
+          <rect x="2" y="6" width="11" height="7" fill="#DE886D"/>
+
+          <!-- 左臂——挥手 + 手里举着黄花
+               花整体下移 2 单位（茎短 1 单位），让花顶 source y 从 4.2 → 6.2
+               这样后续整体 scale 加大时花顶不会冲出 viewBox 上界 -->
+          <g class="arm-happy">
+            <rect x="-1.5" y="9" width="4.5" height="2" fill="#DE886D"/>
+            <!-- 花梗（缩短到 2 单位） -->
+            <rect x="-1.5" y="8" width="0.5" height="2" fill="#000000"/>
+            <!-- 花瓣（黄色十字像素，y 全部 +2） -->
+            <rect x="-2.5" y="7"   width="0.8" height="0.8" fill="#FFD700"/>
+            <rect x="-0.5" y="7"   width="0.8" height="0.8" fill="#FFD700"/>
+            <rect x="-1.5" y="6.2" width="0.8" height="0.8" fill="#FFD700"/>
+            <rect x="-1.5" y="7.8" width="0.8" height="0.8" fill="#FFD700"/>
+            <!-- 花心 -->
+            <rect x="-1.5" y="7"   width="0.8" height="0.8" fill="#FFA000"/>
+          </g>
+
+          <!-- 右臂 -->
+          <rect x="13" y="9" width="2" height="2" fill="#DE886D"/>
+
+          <!-- ^^ 开心眯眼 + 偶尔眨眼 -->
+          <g class="eyes-happy-blink">
+            <g fill="none" stroke="#000000" stroke-width="0.7" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3.5,9 4.5,8 5.5,9"/>
+              <polyline points="9.5,9 10.5,8 11.5,9"/>
+            </g>
+          </g>
+        </g>
+      </g>
+    </g>
+
+    <!-- 周围 3 个闪光（不参与螃蟹旋转，保持竖直；错开延迟交替闪烁）
+         sparkle3 原位置 (0, -5) 在当前 scale 2.4 下会完全飞出屏顶，
+         挪到 (7.5, -1) 让它落在螃蟹头顶正上方的天空区域。 -->
+    <use href="#px-sparkle" x="-3"  y="0"  fill="#FFD700" style="--delay: 0s"/>
+    <use href="#px-sparkle" x="-6"  y="6"  fill="#FFA000" style="--delay: 0.4s"/>
+    <use href="#px-sparkle" x="7.5" y="-1" fill="#FFF59D" style="--delay: 0.8s"/>
+  </g>
+
+  <!-- DONE 标签（绿色 + 缓慢闪烁） -->
+  <g class="done-label">
+    <text x="55" y="2" text-anchor="middle"
+          font-family="'Söhne', 'Helvetica Neue', Arial, sans-serif"
+          font-size="11" font-weight="900" fill="#34C759"
+          letter-spacing="-0.5">DONE</text>
+  </g>
+</svg>

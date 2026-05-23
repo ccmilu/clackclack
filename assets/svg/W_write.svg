@@ -1,0 +1,165 @@
+<!--
+  W 状态（写代码）—— 横屏布局
+  =============================
+  来源：clawd-mini-typing.svg（螃蟹歪头坐在笔记本前打字 + 数据粒子飘起）
+  改动：
+  - viewBox 45x45 → 90x45（2:1 匹配 TFT 160x80）
+  - transform translate(0, -18.5) scale(2.4)（与 D 状态一致，视觉尺寸统一）
+  - 删除最右 3 个数据粒子（d3 / d4 / d7），它们经放大后会和 CODE 字重叠
+    剩 4 个粒子分布在螃蟹左半屏，视觉平衡更好
+  - 右侧加 CODE 标签（蓝色 + 慢闪烁，符合计划书"写代码=蓝色"）
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-15 -25 90 45">
+  <defs>
+    <style>
+      .breathe-anim {
+        transform-origin: 7.5px 13px;
+        animation: breathe 3.2s infinite ease-in-out;
+      }
+      .eyes-read {
+        animation: read-code 1.2s infinite;
+      }
+      .arm-l-type {
+        transform-origin: 3px 10px;
+        animation: type-l 0.15s infinite ease-in-out;
+      }
+      .arm-r-type {
+        transform-origin: 12px 10px;
+        animation: type-r 0.12s infinite ease-in-out;
+      }
+      .data-bit {
+        opacity: 0;
+        animation: float-data 1s infinite linear;
+      }
+      .d1 { animation-delay: 0.0s; transform-origin: -2px 10px; }
+      .d2 { animation-delay: 0.3s; transform-origin: 5px 12px; }
+      .d5 { animation-delay: 0.1s; transform-origin: 8px 10px; }
+      .d6 { animation-delay: 0.4s; transform-origin: 0px 11px; }
+
+      .logo-glow {
+        animation: logo-pulse 1.5s infinite alternate ease-in-out;
+      }
+
+      /* CODE 标签：和其他状态一致的呼吸式闪烁 */
+      .code-label {
+        animation: code-pulse 3.2s ease-in-out infinite;
+        transform-origin: 55px 0px;
+      }
+
+      @keyframes breathe {
+        0%, 100% { transform: scale(1, 1) translate(0, 0); }
+        50% { transform: scale(1.02, 0.98) translate(0, 0.5px); }
+      }
+      @keyframes read-code {
+        0%, 14%   { transform: translate(-2px, 0); }
+        15%, 29%  { transform: translate(-1.5px, 0); }
+        30%, 44%  { transform: translate(-1px, 0); }
+        45%, 59%  { transform: translate(-0.5px, 0); }
+        60%, 84%  { transform: translate(0px, 0); }
+        85%, 100% { transform: translate(-2px, 0); }
+      }
+      @keyframes type-l {
+        0%   { transform: rotate(-10deg); }
+        25%  { transform: rotate(15deg); }
+        50%  { transform: rotate(-5deg); }
+        75%  { transform: rotate(10deg); }
+        100% { transform: rotate(-10deg); }
+      }
+      @keyframes type-r {
+        0%   { transform: rotate(10deg); }
+        25%  { transform: rotate(-15deg); }
+        50%  { transform: rotate(5deg); }
+        75%  { transform: rotate(-10deg); }
+        100% { transform: rotate(10deg); }
+      }
+      @keyframes logo-pulse {
+        0%   { opacity: 0.4; }
+        100% { opacity: 1; }
+      }
+      @keyframes float-data {
+        0%   { transform: translateY(0)   scale(0.5); opacity: 0; }
+        20%  { opacity: 0.8; }
+        100% { transform: translateY(-15px) scale(1.2); opacity: 0; }
+      }
+      @keyframes code-pulse {
+        0%, 100% { opacity: 0.9; }
+        50%      { opacity: 0.45; }
+      }
+    </style>
+
+    <!-- 数据粒子单元（1.5×1.5 像素方块） -->
+    <g id="pixel-packet">
+      <rect x="0" y="0" width="1.5" height="1.5" />
+    </g>
+  </defs>
+
+  <!--
+    放大组：与 D 状态完全一致的 transform，状态切换时螃蟹位置不变。
+  -->
+  <g transform="translate(0, -18.5) scale(2.4)">
+    <!-- 螃蟹整体歪头 12 度（peek 工作姿势） -->
+    <g transform="rotate(-12, 7.5, 15)">
+      <!-- 腿 -->
+      <g fill="#DE886D">
+        <rect x="3"  y="11" width="1" height="4"/>
+        <rect x="5"  y="11" width="1" height="4"/>
+        <rect x="9"  y="11" width="1" height="4"/>
+        <rect x="11" y="11" width="1" height="4"/>
+      </g>
+
+      <!-- 上半身 -->
+      <g id="body-js">
+        <g class="breathe-anim">
+          <!-- 躯干 -->
+          <rect x="2" y="6" width="11" height="7" fill="#DE886D"/>
+
+          <!-- 左臂——快速敲键盘（0.15s） -->
+          <g class="arm-l-type">
+            <rect x="0" y="9" width="3" height="2" fill="#DE886D"/>
+          </g>
+
+          <!-- 右臂——快速敲键盘（0.12s，与左手错开节奏） -->
+          <g class="arm-r-type">
+            <rect x="12" y="9" width="3" height="2" fill="#DE886D"/>
+          </g>
+
+          <!-- 眼睛：阅读代码扫视（从左向右扫） -->
+          <g id="eyes-js" fill="#000000">
+            <g class="eyes-read">
+              <rect x="4"  y="8" width="1" height="2"/>
+              <rect x="10" y="8" width="1" height="2"/>
+            </g>
+          </g>
+        </g>
+      </g>
+
+      <!-- 像素笔记本（在螃蟹脚下） -->
+      <g id="laptop" transform="translate(3, 11)">
+        <!-- 底座 -->
+        <rect x="-0.5" y="4" width="8" height="1" fill="#546E7A" rx="0.5"/>
+        <!-- 屏幕背板 -->
+        <rect x="0" y="0" width="7" height="4.5" fill="#78909C" rx="0.5"/>
+        <!-- 发光的 logo -->
+        <circle cx="3.5" cy="2" r="1.2" fill="#40C4FF" opacity="0.2" class="logo-glow"/>
+        <rect x="3" y="1.5" width="1" height="1" fill="#FFFFFF" class="logo-glow"/>
+      </g>
+    </g>
+
+    <!-- 从笔记本后方飘起的数据粒子（删除最右侧 3 个 d3/d4/d7，
+         避免它们经放大后冲入 CODE 字区域；保留左侧 4 个保持"工作中"氛围） -->
+    <g class="data-particles" fill="#40C4FF">
+      <use href="#pixel-packet" class="data-bit d1" x="-2" y="12" />
+      <use href="#pixel-packet" class="data-bit d2" x="5"  y="11" />
+      <use href="#pixel-packet" class="data-bit d5" x="8"  y="10" />
+      <use href="#pixel-packet" class="data-bit d6" x="1"  y="11" />
+    </g>
+  </g>
+
+  <!-- CODE 标签（蓝色 + 缓慢闪烁，符合计划书"写代码=蓝色"） -->
+  <g class="code-label">
+    <text x="55" y="2" text-anchor="middle"
+          font-family="'Söhne', 'Helvetica Neue', Arial, sans-serif"
+          font-size="11" font-weight="900" fill="#3478F6"
+          letter-spacing="-0.5">CODE</text>
+  </g>
+</svg>

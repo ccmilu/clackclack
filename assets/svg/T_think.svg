@@ -1,0 +1,379 @@
+<!--
+  T 状态（思考）—— 横屏布局
+  =============================
+  来源：clawd-working-thinking.svg
+  改动：
+  - viewBox 45x45 → 90x45（2:1 匹配 TFT 160x80）
+  - 整体 scale 2.0（比 yawn/error 的 2.5 略小），ty=-16 让螃蟹偏屏中下，
+    给顶部气泡和 sparkle 留空间。scale 2.0 是因为：
+      气泡顶 source y=-4 → target y = -16+2*-4 = -24（刚好不出 viewBox 上界 -25）
+      sparkle 顶 source y=-7 → target y = -30（出界 5 单位，上半被裁但下半"got it"星形仍可见）
+  - 右侧加 THINKING 标签（黄色 + 慢呼吸闪烁）
+  - 12 秒一个完整思考循环：左气泡 → 三个点 → "got it" → 右气泡 → ...
+
+  注意：原 SVG 用了 transform-box: view-box，缩放后 transform-origin 偏移会让
+  body-attend 等旋转中心略偏（约 7.5 单位），但所有 transform 数值都极小
+  （rotate ±2.6deg、scale 0.014），偏移视觉上不可见。
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-15 -25 90 45">
+  <defs>
+    <style>
+      #ground-shadow {
+        transform-box: view-box;
+        transform-origin: 7.5px 15.5px;
+        animation: shadow-think 12s infinite ease-in-out;
+      }
+
+      .body-breathe {
+        transform-box: view-box;
+        transform-origin: 7.5px 13px;
+        animation: body-breathe 12s infinite ease-in-out;
+      }
+
+      .body-attend {
+        transform-box: view-box;
+        transform-origin: 7.5px 13px;
+        animation: body-attend 12s infinite ease-in-out;
+      }
+
+      .arm-left,
+      .arm-right,
+      .leg-left-inner,
+      .leg-left-outer,
+      .leg-right-inner,
+      .leg-right-outer {
+        transform-box: fill-box;
+        transform-origin: 50% 0%;
+      }
+
+      .arm-left {
+        transform-origin: 100% 0%;
+        animation: arm-left-think 12s infinite ease-in-out;
+      }
+      .arm-right {
+        transform-origin: 0% 0%;
+        animation: arm-right-think 12s infinite ease-in-out;
+      }
+
+      .eyes {
+        transform-box: view-box;
+        transform-origin: 7.5px 9px;
+        animation: eyes-think 12s infinite ease-in-out;
+      }
+
+      .eyes-rect  { animation: eyes-rect-vis  12s infinite step-end; }
+      .eyes-smile { opacity: 0; animation: eyes-smile-vis 12s infinite step-end; }
+
+      .left-bubble,
+      .right-bubble {
+        transform-box: fill-box;
+        transform-origin: 50% 100%;
+        opacity: 0;
+      }
+      .left-bubble  { animation: left-bubble-life 12s infinite ease-in-out; }
+      .right-bubble { animation: right-bubble-life 12s infinite ease-in-out; }
+
+      .dot { opacity: 0; }
+      .left-bubble  .dot1 { animation: left-dot-1  12s infinite step-end; }
+      .left-bubble  .dot2 { animation: left-dot-2  12s infinite step-end; }
+      .left-bubble  .dot3 { animation: left-dot-3  12s infinite step-end; }
+      .right-bubble .dot1 { animation: right-dot-1 12s infinite step-end; }
+      .right-bubble .dot2 { animation: right-dot-2 12s infinite step-end; }
+      .right-bubble .dot3 { animation: right-dot-3 12s infinite step-end; }
+
+      .bubble-flow { opacity: 0; }
+      .left-bubble  .flow1 { animation: left-flow-1  12s infinite ease-in-out; }
+      .left-bubble  .flow2 { animation: left-flow-2  12s infinite ease-in-out; }
+      .left-bubble  .flow3 { animation: left-flow-3  12s infinite ease-in-out; }
+      .left-bubble  .flow4 { animation: left-flow-4  12s infinite ease-in-out; }
+      .right-bubble .flow1 { animation: right-flow-1 12s infinite ease-in-out; }
+      .right-bubble .flow2 { animation: right-flow-2 12s infinite ease-in-out; }
+      .right-bubble .flow3 { animation: right-flow-3 12s infinite ease-in-out; }
+      .right-bubble .flow4 { animation: right-flow-4 12s infinite ease-in-out; }
+
+      .left-spark,
+      .right-spark {
+        transform-box: fill-box;
+        transform-origin: 50% 50%;
+        opacity: 0;
+      }
+      .left-spark  { animation: left-spark-bling  12s infinite ease-out; }
+      .right-spark { animation: right-spark-bling 12s infinite ease-out; }
+
+      /* THINKING 标签：与其他状态的呼吸式闪烁节奏一致 */
+      .thinking-label {
+        animation: thinking-pulse 3s ease-in-out infinite;
+        transform-origin: 55px 0px;
+      }
+
+      @keyframes shadow-think {
+        0%, 3%, 52%, 99%, 100% { opacity: 0.5; transform: translateX(0) scaleX(1); }
+        15%, 43%               { opacity: 0.4; transform: translateX(-0.28px) scaleX(0.9); }
+        70%, 96%               { opacity: 0.4; transform: translateX(0.28px) scaleX(0.9); }
+      }
+      @keyframes body-breathe {
+        0%, 3%, 52%, 99%, 100%       { transform: scale(1, 1) translateY(0); }
+        15%, 29%, 43%, 70%, 84%, 96% { transform: scale(1.006, 0.994) translateY(0.08px); }
+        22%, 36%, 64%, 78%, 90%      { transform: scale(1.014, 0.986) translateY(0.18px); }
+        54%                          { transform: scale(0.996, 1.004) translateY(-0.08px); }
+      }
+      @keyframes body-attend {
+        0%, 3%, 52%, 99%, 100% { transform: translate(0, 0) rotate(0deg); }
+        7%   { transform: translate(-0.3px, 0.08px) rotate(-1.6deg); }
+        15%  { transform: translate(-0.48px, 0.14px) rotate(-2.6deg); }
+        30%  { transform: translate(-0.45px, 0.1px) rotate(-2.3deg); }
+        42%  { transform: translate(-0.4px, 0.08px) rotate(-2.0deg); }
+        49%  { transform: translate(-0.2px, 0.04px) rotate(-0.8deg); }
+        51%  { transform: translate(-0.05px, 0) rotate(-0.2deg); }
+        54%  { transform: translate(0, 0.08px) rotate(0deg); }
+        58%  { transform: translate(0.3px, 0.08px) rotate(1.6deg); }
+        70%  { transform: translate(0.48px, 0.14px) rotate(2.6deg); }
+        84%  { transform: translate(0.45px, 0.1px) rotate(2.3deg); }
+        96%  { transform: translate(0.32px, 0.06px) rotate(1.4deg); }
+        98%  { transform: translate(0.05px, 0) rotate(0.2deg); }
+      }
+
+      @keyframes arm-left-think {
+        0%, 3%, 52%, 99%, 100% { transform: translate(0, 0) rotate(0deg); }
+        7%        { transform: translate(0.18px, -0.7px) rotate(14deg); }
+        15%, 49%  { transform: translate(0.35px, -1.05px) rotate(22deg); }
+        30%       { transform: translate(0.28px, -0.92px) rotate(26deg); }
+        58%, 96%  { transform: translate(-0.08px, 0.45px) rotate(0deg); }
+        84%       { transform: translate(-0.12px, 0.55px) rotate(0deg); }
+      }
+      @keyframes arm-right-think {
+        0%, 3%, 52%, 99%, 100% { transform: translate(0, 0) rotate(0deg); }
+        7%, 49%   { transform: translate(0.08px, 0.45px) rotate(0deg); }
+        30%       { transform: translate(0.12px, 0.55px) rotate(0deg); }
+        58%       { transform: translate(-0.18px, -0.7px) rotate(-14deg); }
+        70%, 96%  { transform: translate(-0.35px, -1.05px) rotate(-22deg); }
+        84%       { transform: translate(-0.28px, -0.92px) rotate(-26deg); }
+      }
+
+      @keyframes eyes-think {
+        0%, 3%, 52%, 99%, 100% { transform: translate(0, 0) scaleY(1); }
+        5%        { transform: translate(-0.3px, -0.5px) scaleY(0.95); }
+        9%, 42%   { transform: translate(-0.45px, -0.78px) scaleY(0.85); }
+        43%       { transform: translate(-0.45px, -0.78px) scaleY(0.12); }
+        44%, 47%  { transform: translate(-0.45px, -0.78px) scaleY(1); }
+        48%       { transform: translate(-0.45px, -0.78px) scaleY(0.12); }
+        50%       { transform: translate(-0.15px, -0.25px) scaleY(0.95); }
+        54%       { transform: translate(0, 0) scaleY(0.18); }
+        55%       { transform: translate(0.3px, -0.5px) scaleY(0.95); }
+        59%, 88%  { transform: translate(0.45px, -0.78px) scaleY(0.85); }
+        92%       { transform: translate(0.45px, -0.78px) scaleY(0.12); }
+        93%, 96%  { transform: translate(0.45px, -0.78px) scaleY(1); }
+        97%       { transform: translate(0.45px, -0.78px) scaleY(0.12); }
+        98%       { transform: translate(0.2px, -0.4px) scaleY(0.95); }
+        100%      { transform: translate(0, 0) scaleY(1); }
+      }
+
+      @keyframes eyes-rect-vis {
+        0%   { opacity: 1; }
+        43%  { opacity: 0; }
+        48%  { opacity: 1; }
+        92%  { opacity: 0; }
+        97%  { opacity: 1; }
+      }
+      @keyframes eyes-smile-vis {
+        0%   { opacity: 0; }
+        43%  { opacity: 1; }
+        48%  { opacity: 0; }
+        92%  { opacity: 1; }
+        97%  { opacity: 0; }
+      }
+
+      @keyframes left-bubble-life {
+        0%, 3%    { opacity: 0; transform: translate(-0.2px, 0.7px) scale(0.82); }
+        5%        { opacity: 0.75; transform: translate(-0.1px, 0.25px) scale(0.94); }
+        7%        { opacity: 1; transform: translate(0, 0) scale(1.04); }
+        10%, 43%  { opacity: 1; transform: translate(0, 0) scale(1); }
+        46%       { opacity: 1; transform: translate(0, -0.2px) scale(1.02); }
+        48%       { opacity: 1; transform: translate(0, -0.18px) scale(1.01); }
+        49%       { opacity: 1; transform: translate(0, 0) scale(1); }
+        52%       { opacity: 0; transform: translate(0, 0.65px) scale(0.9); }
+        53%, 100% { opacity: 0; transform: translate(0, 0.65px) scale(0.9); }
+      }
+      @keyframes right-bubble-life {
+        0%, 53%   { opacity: 0; transform: translate(0.2px, 0.7px) scale(0.82); }
+        54%       { opacity: 0.75; transform: translate(0.1px, 0.25px) scale(0.94); }
+        58%       { opacity: 1; transform: translate(0, 0) scale(1.04); }
+        61%, 92%  { opacity: 1; transform: translate(0, 0) scale(1); }
+        94%       { opacity: 1; transform: translate(0, -0.2px) scale(1.02); }
+        96%       { opacity: 1; transform: translate(0, -0.18px) scale(1.01); }
+        97%       { opacity: 1; transform: translate(0, 0) scale(1); }
+        99%       { opacity: 0; transform: translate(0, 0.65px) scale(0.9); }
+        100%      { opacity: 0; transform: translate(0, 0.65px) scale(0.9); }
+      }
+
+      @keyframes left-dot-1 {
+        0%, 7.99%, 17.99%, 19.99%, 29.99%, 31.99%, 48.99%, 100% { opacity: 0; }
+        8%, 17.98%, 20%, 29.98%, 32%, 48.98%                    { opacity: 1; }
+      }
+      @keyframes left-dot-2 {
+        0%, 11.99%, 17.99%, 23.99%, 29.99%, 35.99%, 48.99%, 100% { opacity: 0; }
+        12%, 17.98%, 24%, 29.98%, 36%, 48.98%                    { opacity: 1; }
+      }
+      @keyframes left-dot-3 {
+        0%, 15.99%, 17.99%, 27.99%, 29.99%, 39.99%, 48.99%, 100% { opacity: 0; }
+        16%, 17.98%, 28%, 29.98%, 40%, 48.98%                    { opacity: 1; }
+      }
+      @keyframes right-dot-1 {
+        0%, 58.99%, 68.99%, 70.99%, 80.99%, 82.99%, 98.49%, 100% { opacity: 0; }
+        59%, 68.98%, 71%, 80.98%, 83%, 98.48%                    { opacity: 1; }
+      }
+      @keyframes right-dot-2 {
+        0%, 62.99%, 68.99%, 74.99%, 80.99%, 86.99%, 98.49%, 100% { opacity: 0; }
+        63%, 68.98%, 75%, 80.98%, 87%, 98.48%                    { opacity: 1; }
+      }
+      @keyframes right-dot-3 {
+        0%, 66.99%, 68.99%, 78.99%, 80.99%, 90.99%, 98.49%, 100% { opacity: 0; }
+        67%, 68.98%, 79%, 80.98%, 91%, 98.48%                    { opacity: 1; }
+      }
+
+      @keyframes left-flow-1 {
+        0%, 10%, 22%, 100% { opacity: 0; }
+        14%, 18%           { opacity: 0.7; }
+      }
+      @keyframes left-flow-2 {
+        0%, 16%, 28%, 100% { opacity: 0; }
+        20%, 24%           { opacity: 0.7; }
+      }
+      @keyframes left-flow-3 {
+        0%, 22%, 34%, 100% { opacity: 0; }
+        26%, 30%           { opacity: 0.7; }
+      }
+      @keyframes left-flow-4 {
+        0%, 28%, 40%, 100% { opacity: 0; }
+        32%, 36%           { opacity: 0.7; }
+      }
+      @keyframes right-flow-1 {
+        0%, 62%, 74%, 100% { opacity: 0; }
+        66%, 70%           { opacity: 0.7; }
+      }
+      @keyframes right-flow-2 {
+        0%, 68%, 80%, 100% { opacity: 0; }
+        72%, 76%           { opacity: 0.7; }
+      }
+      @keyframes right-flow-3 {
+        0%, 74%, 86%, 100% { opacity: 0; }
+        78%, 82%           { opacity: 0.7; }
+      }
+      @keyframes right-flow-4 {
+        0%, 80%, 92%, 100% { opacity: 0; }
+        84%, 88%           { opacity: 0.7; }
+      }
+
+      @keyframes left-spark-bling {
+        0%, 43%, 49%, 100% { opacity: 0; transform: scale(0.4); }
+        44%                { opacity: 0; transform: scale(0.5); }
+        45%                { opacity: 1; transform: scale(1.35); }
+        46.5%              { opacity: 1; transform: scale(1); }
+        48%                { opacity: 0.4; transform: scale(0.7); }
+      }
+      @keyframes right-spark-bling {
+        0%, 91%, 97%, 100% { opacity: 0; transform: scale(0.4); }
+        92%                { opacity: 0; transform: scale(0.5); }
+        93%                { opacity: 1; transform: scale(1.35); }
+        94.5%              { opacity: 1; transform: scale(1); }
+        96%                { opacity: 0.4; transform: scale(0.7); }
+      }
+
+      @keyframes thinking-pulse {
+        0%, 100% { opacity: 0.9; }
+        50%      { opacity: 0.4; }
+      }
+    </style>
+  </defs>
+
+  <!--
+    放大组：scale 2.4（接近 yawn 的 2.5，螃蟹尺寸视觉接近一致）。
+    ty=-15.5 让气泡顶 target = -15.5 + 2.4*-4 = -25.1 刚好压在 viewBox 上界。
+    螃蟹脚底略微出界 0.5 单位（约 0.9 像素，几乎不可见）。
+  -->
+  <g transform="translate(-10.5, -15.5) scale(2.4)">
+    <rect id="ground-shadow" x="3" y="15" width="9" height="1" fill="#000000" opacity="0.5"/>
+
+    <g id="legs-static" fill="#DE886D">
+      <rect id="outer-left-leg"  x="3"  y="13" width="1" height="2"/>
+      <rect id="inner-left-leg"  x="5"  y="13" width="1" height="2"/>
+      <rect id="inner-right-leg" x="9"  y="13" width="1" height="2"/>
+      <rect id="outer-right-leg" x="11" y="13" width="1" height="2"/>
+    </g>
+
+    <g id="master-group">
+      <g class="body-breathe">
+        <g id="clawd-body" class="body-attend">
+          <g id="body-color-group" fill="#DE886D">
+            <rect id="torso" x="2" y="6" width="11" height="7"/>
+            <rect class="arm-left"  id="left-arm"  x="0"  y="9" width="2" height="2"/>
+            <rect class="arm-right" id="right-arm" x="13" y="9" width="2" height="2"/>
+          </g>
+
+          <g class="eyes" id="eyes-color-group">
+            <g class="eyes-rect" fill="#000000">
+              <rect id="left-eye"  x="4"  y="8" width="1" height="2"/>
+              <rect id="right-eye" x="10" y="8" width="1" height="2"/>
+            </g>
+            <g class="eyes-smile" fill="none" stroke="#000000" stroke-width="0.7" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3.5,9 4.5,8 5.5,9"/>
+              <polyline points="9.5,9 10.5,8 11.5,9"/>
+            </g>
+          </g>
+        </g>
+      </g>
+
+      <!-- 左思考气泡 -->
+      <g class="left-bubble">
+        <path d="M-1 -4 H6 V-3 H7 V2 H6 V3 H-1 V2 H-2 V-3 H-1 Z" fill="#FFFFFF"/>
+        <rect class="bubble-flow flow1" x="3"  y="-5" width="1" height="1" fill="#BFEAFF"/>
+        <rect class="bubble-flow flow2" x="8"  y="0"  width="1" height="1" fill="#BFEAFF"/>
+        <rect class="bubble-flow flow3" x="4"  y="4"  width="1" height="1" fill="#BFEAFF"/>
+        <rect class="bubble-flow flow4" x="-3" y="0"  width="1" height="1" fill="#BFEAFF"/>
+        <rect x="1"   y="4"   width="1"   height="1"   fill="#FFFFFF"/>
+        <rect x="2"   y="5.5" width="0.5" height="0.5" fill="#FFFFFF"/>
+        <rect class="dot dot1" x="0" y="-1" width="1" height="1" fill="#256891"/>
+        <rect class="dot dot2" x="2" y="-1" width="1" height="1" fill="#256891"/>
+        <rect class="dot dot3" x="4" y="-1" width="1" height="1" fill="#256891"/>
+      </g>
+
+      <!-- 右思考气泡 -->
+      <g class="right-bubble">
+        <path d="M9 -4 H16 V-3 H17 V2 H16 V3 H9 V2 H8 V-3 H9 Z" fill="#FFFFFF"/>
+        <rect class="bubble-flow flow1" x="12" y="-5" width="1" height="1" fill="#BFEAFF"/>
+        <rect class="bubble-flow flow2" x="18" y="0"  width="1" height="1" fill="#BFEAFF"/>
+        <rect class="bubble-flow flow3" x="15" y="4"  width="1" height="1" fill="#BFEAFF"/>
+        <rect class="bubble-flow flow4" x="7"  y="0"  width="1" height="1" fill="#BFEAFF"/>
+        <rect x="13"   y="4"   width="1"   height="1"   fill="#FFFFFF"/>
+        <rect x="12.5" y="5.5" width="0.5" height="0.5" fill="#FFFFFF"/>
+        <rect class="dot dot1" x="10" y="-1" width="1" height="1" fill="#256891"/>
+        <rect class="dot dot2" x="12" y="-1" width="1" height="1" fill="#256891"/>
+        <rect class="dot dot3" x="14" y="-1" width="1" height="1" fill="#256891"/>
+      </g>
+
+      <!-- "got it" 灵感闪光 -->
+      <g class="left-spark">
+        <rect x="6" y="-7"   width="1" height="0.6" fill="#FFE066"/>
+        <rect x="6" y="-6.4" width="1" height="1"   fill="#FFE066"/>
+        <rect x="6" y="-5.4" width="1" height="0.6" fill="#FFE066"/>
+        <rect x="5" y="-6.4" width="1" height="1"   fill="#FFE066"/>
+        <rect x="7" y="-6.4" width="1" height="1"   fill="#FFE066"/>
+      </g>
+      <g class="right-spark">
+        <rect x="8" y="-7"   width="1" height="0.6" fill="#FFE066"/>
+        <rect x="8" y="-6.4" width="1" height="1"   fill="#FFE066"/>
+        <rect x="8" y="-5.4" width="1" height="0.6" fill="#FFE066"/>
+        <rect x="7" y="-6.4" width="1" height="1"   fill="#FFE066"/>
+        <rect x="9" y="-6.4" width="1" height="1"   fill="#FFE066"/>
+      </g>
+    </g>
+  </g>
+
+  <!-- THINKING 标签（黄色 + 慢闪烁，与计划书状态映射表"思考=黄色"一致） -->
+  <g class="thinking-label">
+    <text x="55" y="2" text-anchor="middle"
+          font-family="'Söhne', 'Helvetica Neue', Arial, sans-serif"
+          font-size="11" font-weight="900" fill="#E6A600"
+          letter-spacing="-0.5">THINK</text>
+  </g>
+</svg>

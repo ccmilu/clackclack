@@ -1,0 +1,96 @@
+<!--
+  I 状态的 loop 段（打盹）—— 横屏布局
+  =============================
+  来源：clawd-idle-doze.svg
+  改动：
+  - viewBox 45x45 → 90x45（2:1 匹配 TFT 160x80）
+  - 螃蟹位置参数和 I_idle.svg / E_error.svg 完全一致（translate -11.25 -32.5, scale 2.5）
+  - 添加 IDLE 标签（位置/颜色/动画与 I_idle.svg 完全一致，保证 intro→loop 切换时字不跳）
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-15 -25 90 45">
+  <defs>
+    <style>
+      /* 身体缓慢呼吸（保持 yawn 收尾的压扁姿势） */
+      .doze-body {
+        transform-origin: 7.5px 13px;
+        animation: doze-breathe 4s infinite ease-in-out;
+      }
+      .doze-shadow {
+        transform-origin: 7.5px 15.5px;
+        animation: doze-shadow 4s infinite ease-in-out;
+      }
+      .eyes-shut {
+        transform-origin: 7.5px 9px;
+        transform: scaleY(0.1);
+      }
+      .arm-l-doze {
+        transform-origin: 1px 10px;
+        transform: translate(0px, 1px) rotate(-15deg);
+      }
+      .arm-r-doze {
+        transform-origin: 14px 10px;
+        transform: translate(0px, 1px) rotate(15deg);
+      }
+
+      /* IDLE 标签：与 I_idle.svg 完全一致的节奏和颜色，确保切换无跳变 */
+      .idle-label {
+        animation: idle-pulse 3.8s ease-in-out infinite;
+        transform-origin: 55px 0px;
+      }
+
+      @keyframes doze-breathe {
+        0%, 100% { transform: scale(1.05, 0.95) translate(0, 1px); }
+        50% { transform: scale(1.08, 0.92) translate(0, 1.8px); }
+      }
+      @keyframes doze-shadow {
+        0%, 100% { transform: scaleX(1.05); opacity: 0.55; }
+        50% { transform: scaleX(1.08); opacity: 0.5; }
+      }
+      @keyframes idle-pulse {
+        0%, 100% { opacity: 0.85; }
+        50% { opacity: 0.35; }
+      }
+    </style>
+  </defs>
+
+  <!-- 和 I_idle.svg 完全一致的 ty=-29，保证 intro→loop 切换螃蟹位置不跳 -->
+  <g transform="translate(-11.25, -29) scale(2.5)">
+    <!-- 地影 -->
+    <rect class="doze-shadow" x="3" y="15" width="9" height="1" fill="#000000" opacity="0.55"/>
+
+    <!-- 静态腿 -->
+    <g id="legs" fill="#DE886D">
+      <rect x="3"  y="12" width="1" height="3"/>
+      <rect x="5"  y="12" width="1" height="3"/>
+      <rect x="9"  y="12" width="1" height="3"/>
+      <rect x="11" y="12" width="1" height="3"/>
+    </g>
+
+    <!-- 打盹的身体（沿用 yawn 收尾的压扁姿势 + 缓慢呼吸） -->
+    <g class="doze-body">
+      <!-- 躯干 -->
+      <rect x="2" y="6" width="11" height="7" fill="#DE886D"/>
+      <!-- 左臂（自然下垂） -->
+      <g class="arm-l-doze">
+        <rect x="0" y="9" width="2" height="2" fill="#DE886D"/>
+      </g>
+      <!-- 右臂（自然下垂） -->
+      <g class="arm-r-doze">
+        <rect x="13" y="9" width="2" height="2" fill="#DE886D"/>
+      </g>
+      <!-- 闭着的眼睛 -->
+      <g class="eyes-shut" fill="#000000">
+        <rect x="4"  y="8" width="1" height="2"/>
+        <rect x="10" y="8" width="1" height="2"/>
+      </g>
+    </g>
+  </g>
+
+  <!-- IDLE 标签 -->
+  <g class="idle-label">
+    <text x="55" y="2" text-anchor="middle"
+          font-family="'Söhne', 'Helvetica Neue', Arial, sans-serif"
+          font-size="11" font-weight="900" fill="#6B8DB0"
+          letter-spacing="-0.5">IDLE</text>
+  </g>
+</svg>
