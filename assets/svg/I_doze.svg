@@ -47,11 +47,14 @@
         50% { transform: scaleX(1.08); opacity: 0.5; }
       }
       @keyframes idle-pulse {
-        0%, 100% { opacity: 0.85; }
-        50% { opacity: 0.35; }
+        0%, 100% { opacity: 1.0; }
+        50% { opacity: 0.65; }
       }
     </style>
   </defs>
+
+  <!-- 状态背景：浅蓝灰（同 I_idle.svg，保证 intro→loop 切换背景色不变） -->
+  <rect x="-15" y="-25" width="90" height="45" fill="#ECEFF1"/>
 
   <!-- 和 I_idle.svg 完全一致的 ty=-29，保证 intro→loop 切换螃蟹位置不跳 -->
   <g transform="translate(-11.25, -29) scale(2.5)">
@@ -90,7 +93,7 @@
   <g class="idle-label">
     <text x="55" y="2" text-anchor="middle"
           font-family="'Söhne', 'Helvetica Neue', Arial, sans-serif"
-          font-size="11" font-weight="900" fill="#6B8DB0"
+          font-size="11" font-weight="900" fill="#455A64"
           letter-spacing="-0.5">IDLE</text>
   </g>
 </svg>

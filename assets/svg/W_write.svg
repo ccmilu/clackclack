@@ -85,8 +85,8 @@
         100% { transform: translateY(-6px) scale(1.2); opacity: 0; }
       }
       @keyframes code-pulse {
-        0%, 100% { opacity: 0.9; }
-        50%      { opacity: 0.45; }
+        0%, 100% { opacity: 1.0; }
+        50%      { opacity: 0.65; }
       }
     </style>
 
@@ -95,6 +95,9 @@
       <rect x="0" y="0" width="1.5" height="1.5" />
     </g>
   </defs>
+
+  <!-- 状态背景：浅蓝（Material Blue 50） -->
+  <rect x="-15" y="-25" width="90" height="45" fill="#E3F2FD"/>
 
   <!--
     放大组：与 D 状态完全一致的 transform，状态切换时螃蟹位置不变。
@@ -176,7 +179,7 @@
   <g class="code-label">
     <text x="55" y="2" text-anchor="middle"
           font-family="'Söhne', 'Helvetica Neue', Arial, sans-serif"
-          font-size="11" font-weight="900" fill="#3478F6"
+          font-size="11" font-weight="900" fill="#1565C0"
           letter-spacing="-0.5">CODE</text>
   </g>
 </svg>

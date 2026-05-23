@@ -92,11 +92,14 @@
         85%, 100% { opacity: 0; transform: translate(0, -6px) scale(0.8); }
       }
       @keyframes notify-pulse {
-        0%, 100% { opacity: 0.9; }
-        50%      { opacity: 0.4; }
+        0%, 100% { opacity: 1.0; }
+        50%      { opacity: 0.65; }
       }
     </style>
   </defs>
+
+  <!-- 状态背景：浅橙（Material Orange 50） -->
+  <rect x="-15" y="-25" width="90" height="45" fill="#FFF3E0"/>
 
   <!--
     放大组：与 D/W 一致的 transform，状态切换螃蟹位置不变。
@@ -154,7 +157,7 @@
   <g class="notify-label">
     <text x="55" y="2" text-anchor="middle"
           font-family="'Söhne', 'Helvetica Neue', Arial, sans-serif"
-          font-size="11" font-weight="900" fill="#FF9500"
+          font-size="11" font-weight="900" fill="#E65100"
           letter-spacing="-0.5">HEY!</text>
   </g>
 </svg>

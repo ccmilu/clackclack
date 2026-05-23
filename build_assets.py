@@ -129,11 +129,20 @@ def infer_duration_ms(svg_text: str) -> int:
 
 
 def build_html(svg_text: str) -> str:
-    """把 SVG inline 进 HTML，去 width/height 让其按 viewBox 自适应填满 viewport。
+    """把 SVG inline 进 HTML，去 svg 标签的 width/height 让其按 viewBox 自适应填满 viewport。
     用 !important 强制所有动画 fill-mode: both，避免 paused + currentTime ≈ duration 时
-    浏览器把元素回退到原始 style（即没有 keyframe transform 的"初始姿势"，看起来像突然站起来）。
+    浏览器把元素回退到原始 style。
+
+    注意：regex 必须只匹配 <svg> 顶层标签的 width/height，而不能误删后续 <rect width=...> 等！
+    早期版本用 `\s+(width|height)="..."` count=2 会在 <svg> 没 width/height 时
+    匹配到 background <rect>，把 rect 渲染成 0×0 看不见。
     """
-    svg_inline = re.sub(r'\s+(width|height)="[^"]*"', '', svg_text, count=2)
+    svg_inline = re.sub(
+        r'(<svg\b[^>]*?)\s+(width|height)="[^"]*"',
+        r'\1',
+        svg_text,
+        count=2,
+    )
     return f"""<!DOCTYPE html>
 <html><head><style>
   html, body, svg {{

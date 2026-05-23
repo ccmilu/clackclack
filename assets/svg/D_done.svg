@@ -75,8 +75,8 @@
         100% { opacity: 0; }
       }
       @keyframes done-pulse {
-        0%, 100% { opacity: 0.9; }
-        50%      { opacity: 0.45; }
+        0%, 100% { opacity: 1.0; }
+        50%      { opacity: 0.65; }
       }
     </style>
 
@@ -89,6 +89,9 @@
                                    M 0.5,-0.5 h1 v1 h-1 z" />
     </g>
   </defs>
+
+  <!-- 状态背景：浅绿（Material Green 50） -->
+  <rect x="-15" y="-25" width="90" height="45" fill="#E8F5E9"/>
 
   <!--
     放大组：scale 2.4（接近 T 的 2.4，视觉尺寸一致）+ 偏左布局。
@@ -155,7 +158,7 @@
   <g class="done-label">
     <text x="55" y="2" text-anchor="middle"
           font-family="'Söhne', 'Helvetica Neue', Arial, sans-serif"
-          font-size="11" font-weight="900" fill="#34C759"
+          font-size="11" font-weight="900" fill="#2E7D32"
           letter-spacing="-0.5">DONE</text>
   </g>
 </svg>
