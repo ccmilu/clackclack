@@ -76,10 +76,13 @@
         0%   { opacity: 0.4; }
         100% { opacity: 1; }
       }
+      /* 粒子飘动：距离从 -15px 缩到 -6px（经外层 scale 2.4 后实际飘约 14 user units），
+         避免飘出屏顶看不到；opacity 在 15%-70% 之间保持 0.9，让粒子大部分时间可见 */
       @keyframes float-data {
-        0%   { transform: translateY(0)   scale(0.5); opacity: 0; }
-        20%  { opacity: 0.8; }
-        100% { transform: translateY(-15px) scale(1.2); opacity: 0; }
+        0%   { transform: translateY(0)    scale(0.6); opacity: 0; }
+        15%  { opacity: 0.9; }
+        70%  { opacity: 0.9; }
+        100% { transform: translateY(-6px) scale(1.2); opacity: 0; }
       }
       @keyframes code-pulse {
         0%, 100% { opacity: 0.9; }
@@ -96,7 +99,7 @@
   <!--
     放大组：与 D 状态完全一致的 transform，状态切换时螃蟹位置不变。
   -->
-  <g transform="translate(0, -18.5) scale(2.4)">
+  <g transform="translate(-5, -26.5) scale(2.4)">
     <!-- 螃蟹整体歪头 12 度（peek 工作姿势） -->
     <g transform="rotate(-12, 7.5, 15)">
       <!-- 腿 -->
@@ -139,19 +142,33 @@
         <rect x="-0.5" y="4" width="8" height="1" fill="#546E7A" rx="0.5"/>
         <!-- 屏幕背板 -->
         <rect x="0" y="0" width="7" height="4.5" fill="#78909C" rx="0.5"/>
-        <!-- 发光的 logo -->
-        <circle cx="3.5" cy="2" r="1.2" fill="#40C4FF" opacity="0.2" class="logo-glow"/>
-        <rect x="3" y="1.5" width="1" height="1" fill="#FFFFFF" class="logo-glow"/>
+        <!--
+          屏幕中央：平滑矢量粉爱心
+          path 本身仍是 3.2×2.7 单位的"窄心"，但外层 scale(0.75) 让它整体缩到 75%
+          → 实际渲染 2.4×2.0 单位，居中在 7×4.5 笔记本屏上
+          想再调大/小只需改 scale 数值（translate 已配合居中）
+        -->
+        <g class="logo-glow" transform="translate(2.3, 1.26) scale(0.75)">
+          <path d="M 1.6 2.8
+                   Q 0 2 0 0.9
+                   A 0.8 0.8 0 0 1 1.6 0.9
+                   A 0.8 0.8 0 0 1 3.2 0.9
+                   Q 3.2 2 1.6 2.8 Z"
+                fill="#FF80AB"/>
+        </g>
       </g>
     </g>
 
-    <!-- 从笔记本后方飘起的数据粒子（删除最右侧 3 个 d3/d4/d7，
-         避免它们经放大后冲入 CODE 字区域；保留左侧 4 个保持"工作中"氛围） -->
+    <!--
+      数据粒子：用直接 <rect> 而不是 <use href="#pixel-packet">。
+      实测在 Playwright 的 inline SVG 环境下 <use> 的 shadow DOM 不渲染，
+      改 rect 直接画避开这个 bug。颜色 #40C4FF（亮蓝，原 clawd 设计）。
+    -->
     <g class="data-particles" fill="#40C4FF">
-      <use href="#pixel-packet" class="data-bit d1" x="-2" y="12" />
-      <use href="#pixel-packet" class="data-bit d2" x="5"  y="11" />
-      <use href="#pixel-packet" class="data-bit d5" x="8"  y="10" />
-      <use href="#pixel-packet" class="data-bit d6" x="1"  y="11" />
+      <rect class="data-bit d1" x="-2" y="12" width="1.5" height="1.5"/>
+      <rect class="data-bit d2" x="5"  y="11" width="1.5" height="1.5"/>
+      <rect class="data-bit d5" x="8"  y="10" width="1.5" height="1.5"/>
+      <rect class="data-bit d6" x="1"  y="11" width="1.5" height="1.5"/>
     </g>
   </g>
 

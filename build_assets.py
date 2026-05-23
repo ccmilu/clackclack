@@ -47,6 +47,7 @@ STATES = {
     "T": {"loop":  ("T_think.svg", None)},      # 思考（左右气泡 + got it），12s 循环
     "D": {"loop":  ("D_done.svg",  None)},      # 完成（举花挥手 + ^^眼 + 闪光）
     "W": {"loop":  ("W_write.svg", None)},      # 写代码（坐在笔记本前打字 + 数据粒子飘起）
+    "N": {"loop":  ("N_notify.svg", None)},     # 通知（感叹号弹出 → 看左 → 眨眼 → 变 >< 大叉眼 + 甩手）
 }
 
 
@@ -148,6 +149,9 @@ def build_html(svg_text: str) -> str:
 <body>{svg_inline}</body></html>"""
 
 
+DEBUG_SAVE_RAW = False  # 调试用：把 Playwright 采到的原始 PNG 保存到 build/debug_raw/
+
+
 def sample_svg_pngs(svg_path: Path, duration_ms: int) -> list:
     """精确采样 SVG 动画。
     用 Web Animations API 暂停所有动画 + 每帧显式设 currentTime，
@@ -181,7 +185,12 @@ def sample_svg_pngs(svg_path: Path, duration_ms: int) -> list:
             page.evaluate("(t) => { window.__anims.forEach(a => { a.currentTime = t; }); }", t_ms)
             # 等浏览器至少重绘一帧
             page.evaluate("() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))")
-            png_frames.append(page.screenshot())
+            png = page.screenshot()
+            png_frames.append(png)
+            if DEBUG_SAVE_RAW:
+                raw_dir = BUILD_DIR / "debug_raw"
+                raw_dir.mkdir(parents=True, exist_ok=True)
+                (raw_dir / f"{svg_path.stem}_{i:02d}.png").write_bytes(png)
         browser.close()
     return png_frames
 

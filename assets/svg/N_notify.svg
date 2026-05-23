@@ -1,0 +1,160 @@
+<!--
+  N 状态（通知 / 等待输入）—— 横屏布局
+  =============================
+  来源：clawd-mini-alert.svg（左侧弹出红色感叹号 → 螃蟹看左 → 眨眼 → 变 >< 大叉眼 + 甩手）
+  改动：
+  - viewBox 45x45 → 90x45（2:1 匹配 TFT 160x80）
+  - transform translate(-5, -26.5) scale(2.4)（与 D/W 状态一致，视觉尺寸统一）
+  - 感叹号 source x 从 -8 → -2（紧贴螃蟹左侧，避免飞出屏左）
+  - 右侧加 HEY! 标签（橙色 + 闪烁，符合计划书"通知=橙色"）
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-15 -25 90 45">
+  <defs>
+    <style>
+      .breathe-anim {
+        transform-origin: 7.5px 13px;
+        animation: breathe 3.2s infinite ease-in-out;
+      }
+
+      .arm-alert {
+        transform-origin: 2px 9px;
+        animation: alert-arm 4s infinite ease-in-out;
+      }
+
+      /* 正常 rect 眼：开头可见，吓到后隐藏 */
+      .eyes-rect {
+        transform-origin: 7.5px 9px;
+        animation: rect-vis 4s infinite step-end, rect-move 4s infinite ease-in-out;
+      }
+      /* >< 大叉眼：吓到后才显示 */
+      .eyes-xmark {
+        visibility: hidden;
+        animation: xmark-vis 4s infinite step-end;
+      }
+
+      .alert-pop {
+        animation: alert-flash 4s infinite ease-in-out;
+        opacity: 0;
+      }
+
+      /* HEY! 标签：和其他状态一致的呼吸闪烁 */
+      .notify-label {
+        animation: notify-pulse 4s ease-in-out infinite;
+        transform-origin: 55px 0px;
+      }
+
+      @keyframes breathe {
+        0%, 100% { transform: scale(1, 1) translate(0, 0); }
+        50% { transform: scale(1.02, 0.98) translate(0, 0.5px); }
+      }
+
+      /* 手臂：前半安静，后半连续甩 5 次 */
+      @keyframes alert-arm {
+        0%, 49% { transform: rotate(0deg); }
+        51% { transform: rotate(20deg); }
+        60% { transform: rotate(-8deg); }
+        64% { transform: rotate(20deg); }
+        68% { transform: rotate(-8deg); }
+        72% { transform: rotate(20deg); }
+        76% { transform: rotate(-8deg); }
+        80% { transform: rotate(20deg); }
+        84% { transform: rotate(-8deg); }
+        88% { transform: rotate(20deg); }
+        92%, 100% { transform: rotate(0deg); }
+      }
+
+      /* 眼睛 rect 阶段：居中 → 看左 → 回正 → 眨眼两次 → 隐藏 */
+      @keyframes rect-move {
+        0%, 16%   { transform: translate(0, 0) scaleY(1); }
+        22%, 28%  { transform: translate(-2px, 0) scaleY(1); }
+        34%       { transform: translate(0, 0) scaleY(1); }
+        36%       { transform: translate(0, 0) scaleY(0.1); }
+        37%, 39%  { transform: translate(0, 0) scaleY(1); }
+        41%       { transform: translate(0, 0) scaleY(0.1); }
+        42%, 100% { transform: translate(0, 0) scaleY(1); }
+      }
+      @keyframes rect-vis {
+        0%  { visibility: visible; }
+        42% { visibility: hidden; }
+        91% { visibility: visible; }
+      }
+      @keyframes xmark-vis {
+        0%  { visibility: hidden; }
+        42% { visibility: visible; }
+        89% { visibility: hidden; }
+      }
+
+      /* 感叹号弹出 → 保持 → 渐渐飞出 */
+      @keyframes alert-flash {
+        0%, 8%    { opacity: 0; transform: scale(0.5); }
+        12%       { opacity: 1; transform: translate(0, -4px) scale(1.2); }
+        20%, 70%  { opacity: 1; transform: translate(0, -4px) scale(1); }
+        85%, 100% { opacity: 0; transform: translate(0, -6px) scale(0.8); }
+      }
+      @keyframes notify-pulse {
+        0%, 100% { opacity: 0.9; }
+        50%      { opacity: 0.4; }
+      }
+    </style>
+  </defs>
+
+  <!--
+    放大组：与 D/W 一致的 transform，状态切换螃蟹位置不变。
+  -->
+  <g transform="translate(-5, -26.5) scale(2.4)">
+    <!-- 螃蟹整体歪头 12 度（被吓到的姿势） -->
+    <g transform="rotate(-12, 7.5, 15)">
+      <!-- 腿 -->
+      <g fill="#DE886D">
+        <rect x="3"  y="11" width="1" height="4"/>
+        <rect x="5"  y="11" width="1" height="4"/>
+        <rect x="9"  y="11" width="1" height="4"/>
+        <rect x="11" y="11" width="1" height="4"/>
+      </g>
+
+      <g id="body-js">
+        <g class="breathe-anim">
+          <!-- 躯干 -->
+          <rect x="2" y="6" width="11" height="7" fill="#DE886D"/>
+
+          <!-- 左臂——前 49% 静止，后半连续甩 5 次 -->
+          <g class="arm-alert">
+            <rect x="-1.5" y="9" width="4.5" height="2" fill="#DE886D"/>
+          </g>
+
+          <!-- 右臂 -->
+          <rect x="13" y="9" width="2" height="2" fill="#DE886D"/>
+
+          <!-- 第一阶段：正常 rect 眼睛 -->
+          <g class="eyes-rect" fill="#000000">
+            <rect x="4"  y="8" width="1" height="2"/>
+            <rect x="10" y="8" width="1" height="2"/>
+          </g>
+
+          <!-- 第二阶段：>< 大叉眼（吓到后） -->
+          <g class="eyes-xmark" fill="none" stroke="#000000" stroke-width="0.7" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="4,8 5.5,9 4,10"/>
+            <polyline points="11,8 9.5,9 11,10"/>
+          </g>
+        </g>
+      </g>
+    </g>
+
+    <!--
+      感叹号（在 scale group 内但 rotate group 外，保持竖直方向）
+      位置改到 source x=-2（紧贴螃蟹左侧）以便经放大后在屏内
+    -->
+    <g class="alert-pop" fill="#FF3D00">
+      <rect x="-2" y="5"  width="2" height="4"/>
+      <rect x="-2" y="10" width="2" height="2"/>
+    </g>
+  </g>
+
+  <!-- HEY! 标签（橙色 + 闪烁，符合计划书"通知=橙色"） -->
+  <g class="notify-label">
+    <text x="55" y="2" text-anchor="middle"
+          font-family="'Söhne', 'Helvetica Neue', Arial, sans-serif"
+          font-size="11" font-weight="900" fill="#FF9500"
+          letter-spacing="-0.5">HEY!</text>
+  </g>
+</svg>
