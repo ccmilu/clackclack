@@ -18,3 +18,9 @@ __pycache__/
 # 编辑器
 .vscode/
 .idea/
+
+# CAD 构建产物（由 case_v1.py 重新生成）
+cad/*.stl
+
+# Claude Code 个人 skill 配置
+.claude/skills/
