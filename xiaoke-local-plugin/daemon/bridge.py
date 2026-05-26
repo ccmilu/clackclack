@@ -64,33 +64,54 @@ PLIST_PATH        = LAUNCH_AGENT_DIR / f"{LABEL}.plist"
 # 对话框 + "打开系统设置"按钮——AppleScript 没有这个能力。
 HELPER_APP        = SCRIPT_DIR / "KeyReturn.app"
 HELPER_LANG       = "JavaScript"   # osacompile -l 参数
-# 行为：
-# 1. 主动检查辅助功能权限（prompt: true 让 macOS 弹授权请求对话框）
-# 2. 没权限 → 静默退出（用户去授权完成后下次按按钮再走完整流程）
-# 3. 记下当前 frontmost app（按按钮前用户正在用的那个）
-# 4. 读 /tmp/xiaoke-target-app.txt 拿目标终端 app 名 → activate → 发回车
-# 5. 切回原 frontmost app（用户体验：按完按钮自动回到原本在看的窗口）
+
+# 常驻模式相关文件：
+#   PID 文件：daemon 用它判断 KeyReturn.app 是否还在跑（活着就不重启）
+#   触发文件：daemon 写这个文件来让常驻的 KeyReturn.app 执行一次按回车
+# 这种"常驻 + 文件触发"避免每次按按钮都重启 .app（osacompile applet 启动要 200-500ms）
+HELPER_PID_FILE   = Path("/tmp/xiaoke-keyreturn.pid")
+HELPER_TRIGGER    = Path("/tmp/xiaoke-keyreturn.trigger")
+# 设计：常驻模式
+# .app 启动后进入死循环 polling 触发文件 /tmp/xiaoke-keyreturn.trigger
+# daemon 收到 PRESS 时只写一下这个文件 → .app 立刻执行按回车，无需重启 .app
+# 启动开销（osacompile JXA runtime ~300ms）只付一次，之后按按钮接近瞬时响应
+#
+# 一次性初始化（启动时一次）：
+#   - 写 PID 文件 /tmp/xiaoke-keyreturn.pid（daemon 用它判断 .app 还活着不）
+#   - 主动检查辅助功能权限（prompt: true 让 macOS 弹首次授权请求）
+#
+# 每次触发的工作（被主循环 polling 到 trigger 文件后执行）：
+#   3. 记下当前 frontmost app 的 PID + name（切回的依据）
+#   4. 读 /tmp/xiaoke-target-app.txt 拿目标终端 app → activate
+#   5. 多窗口精确切：找标题带 "🔴 CLAUDE_WAIT" 的窗口 AXRaise
+#   6. 发回车 → 用 NSRunningApplication 把原 app 切回前台（跨桌面可靠）
 # 全程 try/catch 吞错误，不弹烦人的 JS 错误对话框
 HELPER_SCRIPT     = """
 ObjC.import('Foundation');
 ObjC.import('AppKit');
 ObjC.import('ApplicationServices');
 
-function run() {
-    // 第一步：检查并请求辅助功能权限
-    // prompt: true 会让 macOS 在首次没权限时弹出标准的"X 想要使用辅助功能"对话框
+const TRIGGER_PATH = "/tmp/xiaoke-keyreturn.trigger";
+const PID_PATH     = "/tmp/xiaoke-keyreturn.pid";
+const fm           = $.NSFileManager.defaultManager;
+
+function initOnce() {
+    // 写 PID 让 daemon 知道这个常驻进程的 PID（用于活性检查）
+    try {
+        const pid = $.NSProcessInfo.processInfo.processIdentifier;
+        $.NSString.stringWithString(String(pid))
+            .writeToFileAtomicallyEncodingError(PID_PATH, true, $.NSUTF8StringEncoding, $());
+    } catch (e) {}
+
+    // 检查辅助功能权限（prompt: true 触发首次授权对话框）
     try {
         const opts = $.NSMutableDictionary.alloc.init;
         opts.setValueForKey(true, "AXTrustedCheckOptionPrompt");
-        const trusted = $.AXIsProcessTrustedWithOptions(opts);
-        if (!trusted) {
-            // 没辅助功能权限：静默退出，等用户在系统设置里授权
-            return;
-        }
-    } catch (e) {
-        // 检查 API 自身失败：忽略，往下尝试 keystroke（失败也只是 1002 错误）
-    }
+        $.AXIsProcessTrustedWithOptions(opts);
+    } catch (e) {}
+}
 
+function doKeystroke() {
     const SE = Application("System Events");
 
     // 第二步：记下当前 frontmost app 的 PID + name
@@ -165,6 +186,22 @@ function run() {
                 prevApp.activateWithOptions(3);
             }
         } catch (e) {}
+    }
+}
+
+function run() {
+    initOnce();
+    // 主循环：50ms polling 触发文件。文件存在 → 删 + 执行 doKeystroke()
+    // polling 间隔 50ms 平均增加 ~25ms 延迟，但省了每次重启 .app 的 200-500ms 启动开销
+    while (true) {
+        try {
+            if (fm.fileExistsAtPath(TRIGGER_PATH)) {
+                // 先删触发文件再执行，避免 doKeystroke 期间被重复触发
+                fm.removeItemAtPathError(TRIGGER_PATH, $());
+                doKeystroke();
+            }
+        } catch (e) {}
+        delay(0.05);
     }
 }
 """
@@ -512,29 +549,55 @@ def ensure_helper_app() -> bool:
         return False
 
 
-def simulate_return_key():
-    """通过 KeyReturn.app 让前台窗口收到一个回车。首次会触发辅助功能权限弹窗。
-    弹窗会显示 "KeyReturn" 而不是 Python——授权对象更精确（这个 app 写死只能按回车）。"""
+def is_keyreturn_alive() -> bool:
+    """检查常驻 KeyReturn.app 进程是否还活着（PID 文件 + os.kill 探针）。"""
+    if not HELPER_PID_FILE.exists():
+        return False
+    try:
+        pid = int(HELPER_PID_FILE.read_text().strip())
+        os.kill(pid, 0)   # 不发信号，只检查进程存在性
+        return True
+    except (ProcessLookupError, ValueError, PermissionError):
+        return False
+    except Exception:
+        return False
+
+
+def ensure_keyreturn_running() -> None:
+    """保证常驻 KeyReturn.app 进程在跑。不在就 open -g -a 启动它。
+    .app 启动后会自己写 PID 文件 + 进入死循环 polling 触发文件。
+    幂等：已经在跑就不做任何事（避免反复启动多实例）。"""
+    if is_keyreturn_alive():
+        return
     if not HELPER_APP.exists() and not ensure_helper_app():
-        # fallback：helper 编译失败了，退到直接 osascript（权限归 Python，但起码能用）
-        try:
-            subprocess.run(
-                ["osascript", "-e", HELPER_SCRIPT],
-                check=False, capture_output=True, timeout=2,
-            )
-            log("KEYSTROKE_RETURN  via=osascript_fallback")
-        except Exception as e:
-            log(f"KEYSTROKE_FAIL  err={e}")
+        log("KEYRETURN_LAUNCH_SKIP  helper app missing and compile failed")
         return
     try:
-        # open -g：后台启动，不抢前台焦点（焦点继续在 Claude Code 窗口上，回车才发对地方）
+        # -g background：不抢前台焦点；-j junk：不在 Dock 显示（配合 LSUIElement）
         subprocess.run(
             ["open", "-g", "-a", str(HELPER_APP)],
             check=False, capture_output=True, timeout=2,
         )
-        log("KEYSTROKE_RETURN  via=helper")
+        log(f"KEYRETURN_LAUNCH  path={HELPER_APP}")
     except Exception as e:
-        log(f"KEYSTROKE_FAIL  err={e}")
+        log(f"KEYRETURN_LAUNCH_FAIL  err={e}")
+
+
+def simulate_return_key():
+    """触发常驻 KeyReturn.app 执行一次按回车。
+    新方案（常驻 + 文件触发）：只写 trigger 文件，常驻的 .app polling 到后立刻执行，
+    省去每次 open -a 重启 .app 的 200-500ms 启动开销。
+
+    流程：
+    1) 保证常驻 .app 在跑（不在就启动，正常情况下 daemon 启动时已经起来了）
+    2) 写一下 trigger 文件 → .app 在 50ms 内 polling 到 → 执行 keystroke 逻辑
+    """
+    ensure_keyreturn_running()
+    try:
+        HELPER_TRIGGER.touch()
+        log("KEYSTROKE_TRIGGER  via=resident_helper")
+    except Exception as e:
+        log(f"KEYSTROKE_TRIGGER_FAIL  err={e}")
 
 
 def serial_read_loop(sm: SerialManager, stop_event: threading.Event):
@@ -601,6 +664,8 @@ def run_daemon() -> int:
 
     # daemon 启动时保证 helper app 在位（自愈：用户删了 KeyReturn.app 也能自动重建）
     ensure_helper_app()
+    # 启动常驻 KeyReturn.app，使其等待 trigger 文件——按按钮时延迟更低
+    ensure_keyreturn_running()
 
     # 写版本指纹：用当前源码 mtime。下次代码改了，hook 读到磁盘 mtime ≠ 指纹文件内容 → 触发 reinstall
     try:
