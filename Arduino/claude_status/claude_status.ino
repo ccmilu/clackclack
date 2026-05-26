@@ -281,9 +281,9 @@ void advanceFrame() {
   need_redraw = true;
 }
 
-// 16×16 静音图标位图，从 /Users/milu/Downloads/静音-F.svg 渲染而来。
-// 转换命令（claude-device conda env）：
-//   cairosvg.svg2png(url=SVG, output_width=16, output_height=16)
+// 16×16 静音图标位图（从一个喇叭被划掉的 SVG 渲染而来）。
+// 转换流程：
+//   cairosvg.svg2png(url=<source.svg>, output_width=16, output_height=16)
 //   → PIL alpha > 100 二值化 → 1bpp 按行 MSB first
 // 每行 2 bytes（16 像素），共 32 bytes。
 const uint8_t MUTE_ICON_BMP[] PROGMEM = {

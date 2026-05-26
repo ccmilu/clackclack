@@ -1,4 +1,4 @@
-#!/opt/anaconda3/envs/claude-device/bin/python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 simulator.py — TFT 屏模拟器（双视图版）
@@ -34,7 +34,7 @@ try:
     import crab_data
 except ImportError:
     print("[错误] 没找到 build/crab_data.py")
-    print("       请先运行: /opt/anaconda3/envs/claude-device/bin/python build_assets.py")
+    print("       请先运行: python build_assets.py")
     sys.exit(1)
 
 FRAME_W      = crab_data.FRAME_W

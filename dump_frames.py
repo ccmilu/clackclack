@@ -1,4 +1,4 @@
-#!/opt/anaconda3/envs/claude-device/bin/python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 dump_frames.py — 把 crab_data.py 里的所有帧解码并保存为 PNG

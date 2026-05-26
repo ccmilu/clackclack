@@ -1,10 +1,10 @@
-#!/opt/anaconda3/envs/claude-device/bin/python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 test_device.py — Claude 物理状态机硬件测试工具
 ================================================
 用法：
-    /opt/anaconda3/envs/claude-device/bin/python test_device.py [/dev/cu.usbmodem...]
+    python test_device.py [/dev/cu.usbmodem...]
     （不传端口会自动找第一个 cu.usbmodem*）
 
 功能：

@@ -1,4 +1,4 @@
-#!/opt/anaconda3/envs/claude-device/bin/python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 build_assets.py — 资产构建脚本（端到端最小验证版）

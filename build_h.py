@@ -1,4 +1,4 @@
-#!/opt/anaconda3/envs/claude-device/bin/python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 build_h.py — 把 build/crab_data.py 转成 ESP32 用的 crab_data.h

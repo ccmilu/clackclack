@@ -16,6 +16,14 @@ build/
 # 本地 Claude Code 个人设置（包含端口等机器相关配置时）
 .claude/settings.local.json
 
+# 项目内部的设计文档 / 复盘 / Claude Code 项目指令——不公开
+# 这些是开发过程中的 internal notes，README 里已经摘了对外用户需要的部分
+/CLAUDE.md
+/docs/
+
+# 第三方 skill（用户自己装的本地 Claude Code skill）
+.claude/skills/
+
 # Python
 __pycache__/
 *.pyc

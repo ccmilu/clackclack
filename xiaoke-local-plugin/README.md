@@ -82,8 +82,10 @@ claude  # 重新启动 Claude Code
 
 **改 `plugin/hooks/hooks.json`**，把所有 `python3` 替换成你的 Python 绝对路径，例如：
 ```json
-"command": "/opt/anaconda3/envs/claude-device/bin/python \"${CLAUDE_PLUGIN_ROOT}/hooks/physical-status.py\" notification"
+"command": "<你的 conda python 绝对路径> \"${CLAUDE_PLUGIN_ROOT}/hooks/physical-status.py\" notification"
 ```
+
+绝对路径可以这样查：在能用的终端里跑 `conda activate <你的环境> && which python`。
 
 或者**在系统 Python 装 pyserial** 让 `python3` 能用：
 ```bash
