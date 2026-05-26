@@ -61,21 +61,11 @@ Adafruit_ST7735 tft(&SPI, TFT_CS, TFT_DC, TFT_RST);
 // 设计原则：电磁铁是"强提醒"信号，只在需要用户介入的状态触发（N/D/E）。
 // T 思考 / W 写代码 / I 空闲 是 AI 自己干活，电磁铁完全静止，避免持续打扰。
 
-// N 状态（紧急召唤）：5 次 20Hz 急促颤抖（用户实测 20Hz @ duty 255 能完整推出）。
-// 间隔渐增 800ms → 1500ms → 3000ms → 8000ms，避免用户走开后持续烦躁，但不会完全消音。
+// N 状态（紧急召唤）：3 短脉冲 + 1 长脉冲 = "咔咔咔 咔——"，播一次后长静止。
+// 时长与 N_melody 完全对齐（30ms 电磁铁 ←→ 30ms 短叮，250ms 电磁铁 ←→ 250ms 长咚）
+// 60 秒后才循环回去再蹦一次（类似 D 的处理）：用户长时间不响应时也偶尔提醒。
 const MagStep N_steps[] = {
-  // 第 1 组（紧急）
-  {25, 255}, {25, 0}, {25, 255}, {25, 0}, {25, 255}, {25, 0},
-  {25, 255}, {25, 0}, {25, 255}, {800, 0},
-  // 第 2 组（间隔变长）
-  {25, 255}, {25, 0}, {25, 255}, {25, 0}, {25, 255}, {25, 0},
-  {25, 255}, {25, 0}, {25, 255}, {1500, 0},
-  // 第 3 组
-  {25, 255}, {25, 0}, {25, 255}, {25, 0}, {25, 255}, {25, 0},
-  {25, 255}, {25, 0}, {25, 255}, {3000, 0},
-  // 第 4+ 组（稀疏模式，跑到这里循环回第 1 组前会等 8 秒）
-  {25, 255}, {25, 0}, {25, 255}, {25, 0}, {25, 255}, {25, 0},
-  {25, 255}, {25, 0}, {25, 255}, {8000, 0},
+  {30, 255}, {60, 0}, {30, 255}, {60, 0}, {30, 255}, {80, 0}, {250, 255}, {60000, 0},
 };
 
 // D 状态（完成报告）：和马里奥金币音"叮~咚"完全同步（前短后长）。
@@ -114,9 +104,13 @@ const MagPattern* getMagPattern(char id) {
 //   100 = 全局音量 100%
 //    50 = 全局音量 50%
 //    20 = 全局音量 20%（很轻）
-const BuzzNote N_melody[] = {           // 通知：叮叮（紧急，两音同响度）
-  {880, 80, 60, 100},
-  {880, 80, 0,  100},
+// N 通知：3 短叮 + 1 长咚，与 N_steps 完全同步
+// 时长与电磁铁严格对齐：30ms 响 + 60/80ms 间隔，最后 250ms 长尾
+const BuzzNote N_melody[] = {
+  {1000, 30,  60, 100},   // 短叮
+  {1000, 30,  60, 100},   // 短叮
+  {1000, 30,  80, 100},   // 短叮（间隔 80ms 配合电磁铁）
+  {600,  250, 0,  100},   // 长咚（600Hz 中低频温和收尾）
 };
 // D 完成：超级马里奥金币音（B5 → E6 高八度跳）— 短促清脆"叮~咚"
 const BuzzNote D_melody[] = {
@@ -170,6 +164,7 @@ int btn_last_stable = HIGH;
 int btn_last_read   = HIGH;
 unsigned long btn_last_change = 0;
 unsigned long btn_press_start = 0;
+bool btn_long_fired = false;     // 当次按下中，长按动作是否已触发（避免松开时重复触发）
 
 bool muted = false;
 
@@ -192,15 +187,72 @@ uint16_t segSize(const CrabState* s, Segment seg, uint16_t i) {
 }
 
 // ============ TFT 渲染 ============
+// 静音图标占据的屏幕矩形（必须和 drawMuteIcon 的位置一致）
+constexpr int ICON_BOX_X = SCREEN_W - 18;   // 142
+constexpr int ICON_BOX_Y = SCREEN_H - 18;   // 62
+constexpr int ICON_BOX_W = 16;
+constexpr int ICON_BOX_H = 16;
+
+// drawFrame 当 muted=true 时不写图标矩形那 16×16 像素，避免每帧"擦掉再重画"图标导致闪烁。
+// 实现：按行解码 RLE 到 row buffer，再按行 setAddrWindow + writePixels；
+// 图标所在行（cur_y 在 ICON_BOX_Y..ICON_BOX_Y+ICON_H-1）拆成左右两段写，中间空 16 像素。
 void drawFrame(const CrabState* s, const uint8_t* rle, uint16_t sz, int ox, int oy) {
+  static uint16_t row_buf[FRAME_W];
+
+  const int RIGHT_X = ICON_BOX_X + ICON_BOX_W;       // 图标右边缘 = 158
+  const int RIGHT_W = FRAME_W - RIGHT_X;             // 右段宽度 = 2
+
+  uint16_t row_pos = 0;     // 当前行内填充位置
+  uint16_t cur_y   = 0;
+  uint16_t rle_i   = 0;
+  uint8_t  count   = 0;
+  uint8_t  idx     = 0;
+  uint16_t c       = 0;
+
   tft.startWrite();
-  tft.setAddrWindow(ox, oy, FRAME_W, FRAME_H);
-  for (uint16_t i = 0; i < sz; i += 2) {
-    uint8_t count = rle[i];
-    uint8_t idx   = rle[i + 1];
-    uint16_t c    = ((uint16_t)s->palette[idx*2] << 8) | s->palette[idx*2 + 1];
-    tft.writeColor(c, count);
+
+  while (cur_y < FRAME_H) {
+    // 取下一个 RLE 段
+    if (count == 0) {
+      if (rle_i >= sz) break;
+      count = rle[rle_i];
+      idx   = rle[rle_i + 1];
+      c     = ((uint16_t)s->palette[idx * 2] << 8) | s->palette[idx * 2 + 1];
+      rle_i += 2;
+    }
+
+    // 填行 buffer
+    uint16_t fit = (count < (FRAME_W - row_pos)) ? count : (FRAME_W - row_pos);
+    for (uint16_t k = 0; k < fit; k++) row_buf[row_pos++] = c;
+    count -= fit;
+
+    // 行满 → 写出去
+    if (row_pos >= FRAME_W) {
+      bool is_icon_row = muted &&
+                         (cur_y >= ICON_BOX_Y) &&
+                         (cur_y <  ICON_BOX_Y + ICON_BOX_H);
+
+      if (is_icon_row) {
+        // 左段（0 ~ ICON_BOX_X - 1）
+        tft.setAddrWindow(ox, oy + cur_y, ICON_BOX_X, 1);
+        tft.writePixels(row_buf, ICON_BOX_X);
+        // 右段（图标右侧到行尾）
+        if (RIGHT_W > 0) {
+          tft.setAddrWindow(ox + RIGHT_X, oy + cur_y, RIGHT_W, 1);
+          tft.writePixels(row_buf + RIGHT_X, RIGHT_W);
+        }
+        // 中间 16 像素图标区不写 → 保留 drawMuteIcon 画好的图标
+      } else {
+        // 普通行：一次性整行写
+        tft.setAddrWindow(ox, oy + cur_y, FRAME_W, 1);
+        tft.writePixels(row_buf, FRAME_W);
+      }
+
+      row_pos = 0;
+      cur_y++;
+    }
   }
+
   tft.endWrite();
 }
 
@@ -223,6 +275,59 @@ void advanceFrame() {
   }
   last_frame_swap = now;
   need_redraw = true;
+}
+
+// 16×16 静音图标位图，从 /Users/milu/Downloads/静音-F.svg 渲染而来。
+// 转换命令（claude-device conda env）：
+//   cairosvg.svg2png(url=SVG, output_width=16, output_height=16)
+//   → PIL alpha > 100 二值化 → 1bpp 按行 MSB first
+// 每行 2 bytes（16 像素），共 32 bytes。
+const uint8_t MUTE_ICON_BMP[] PROGMEM = {
+  0x00, 0x00,  0x60, 0x00,  0x71, 0x80,  0x3B, 0xC0,
+  0x1D, 0xC0,  0x7E, 0xC4,  0x7F, 0x56,  0x7F, 0x9A,
+  0x7F, 0xDA,  0x7F, 0xE2,  0x7F, 0xF6,  0x07, 0xF8,
+  0x03, 0xDC,  0x01, 0x8E,  0x00, 0x06,  0x00, 0x00,
+};
+
+// 每个状态的背景色（与 SVG 设计中状态背景 fill 一致）
+// 用作 drawMuteIcon 的 bit=0 像素，让图标看起来"无边框"透明融入状态背景
+// 升级到 Material 100：比 50 号深一档但仍柔和，在 ST7735 屏上区分度更好
+uint16_t getStateBgColor(char id) {
+  switch (id) {
+    case 'T': return 0xFF76;  // #FFECB3 Amber 100
+    case 'W': return 0xBDDF;  // #BBDEFB Blue 100
+    case 'N': return 0xFF16;  // #FFE0B2 Orange 100
+    case 'D': return 0xCE79;  // #C8E6C9 Green 100
+    case 'E': return 0xFE7A;  // #FFCDD2 Red 100
+    case 'I': return 0xCEBB;  // #CFD8DC Blue Grey 100
+    default:  return 0x0000;
+  }
+}
+
+// 静音图标：右下角 16×16 像素喇叭 + 斜线"划掉"。
+// drawFrame 已经会跳过图标区域（见 drawFrame 的 muted 分支），所以这里：
+//   - 把"bit=1=图标灰色 + bit=0=当前状态背景色"一次性装进 buf[256]
+//   - 用 setAddrWindow + writePixels 一次性发完，0.15ms 内完成
+//   - 视觉上看不到边框，图标"无缝融入"状态色背景
+void drawMuteIcon() {
+  if (!current_crab) return;
+
+  const uint16_t ICON_COLOR = 0xB5B6;   // RGB(180, 180, 180) 淡灰图标
+  const uint16_t BG = getStateBgColor(current_crab->id);
+
+  static uint16_t buf[ICON_BOX_W * ICON_BOX_H];  // 256 像素 = 512 字节，static 进 BSS
+  for (int j = 0; j < ICON_BOX_H; j++) {
+    uint16_t bits = ((uint16_t)pgm_read_byte(&MUTE_ICON_BMP[j * 2]) << 8)
+                  | pgm_read_byte(&MUTE_ICON_BMP[j * 2 + 1]);
+    for (int i = 0; i < ICON_BOX_W; i++) {
+      buf[j * ICON_BOX_W + i] = ((bits >> (15 - i)) & 1) ? ICON_COLOR : BG;
+    }
+  }
+
+  tft.startWrite();
+  tft.setAddrWindow(ICON_BOX_X, ICON_BOX_Y, ICON_BOX_W, ICON_BOX_H);
+  tft.writePixels(buf, ICON_BOX_W * ICON_BOX_H);
+  tft.endWrite();
 }
 
 // ============ 蜂鸣器 ============
@@ -365,15 +470,13 @@ void onPress() {
   if (!muted) startMelody(&PRESS_MELODY);
 }
 
-void onRelease(unsigned long heldMs) {
-  if (heldMs >= BTN_LONG_PRESS_MS) {
-    Serial.println("LONG");
-    muted = !muted;
-    Serial.printf("MUTE %d\n", muted ? 1 : 0);
-    if (muted) { buzzerOff(); buzz_melody = nullptr; }   // 只静蜂鸣器，电磁铁继续
-  } else {
-    Serial.printf("RELEASE %lu\n", heldMs);
-  }
+// 长按到达阈值时立刻触发的动作（无需等松开）
+void onLongPressFired() {
+  Serial.println("LONG");
+  muted = !muted;
+  Serial.printf("MUTE %d\n", muted ? 1 : 0);
+  if (muted) { buzzerOff(); buzz_melody = nullptr; }   // 只静蜂鸣器，电磁铁继续
+  need_redraw = true;   // 强制下一帧重绘，让静音图标立即显示/消失
 }
 
 void tickButton() {
@@ -382,14 +485,28 @@ void tickButton() {
     btn_last_change = millis();
     btn_last_read = reading;
   }
+
+  // 边沿检测：按下 / 松开瞬间
   if ((millis() - btn_last_change) > BTN_DEBOUNCE_MS && reading != btn_last_stable) {
     btn_last_stable = reading;
     if (btn_last_stable == LOW) {
+      // 刚按下
       btn_press_start = millis();
+      btn_long_fired = false;
       onPress();
     } else {
-      onRelease(millis() - btn_press_start);
+      // 刚松开：长按已经触发过就不再打 RELEASE，避免冗余
+      if (!btn_long_fired) {
+        Serial.printf("RELEASE %lu\n", millis() - btn_press_start);
+      }
     }
+  }
+
+  // 持续按下中：达到长按阈值的瞬间立刻触发（不等松开）
+  if (btn_last_stable == LOW && !btn_long_fired &&
+      (millis() - btn_press_start) >= BTN_LONG_PRESS_MS) {
+    btn_long_fired = true;
+    onLongPressFired();
   }
 }
 
@@ -444,6 +561,7 @@ void loop() {
                 segData(current_crab, current_segment, frame_idx),
                 segSize(current_crab, current_segment, frame_idx),
                 CRAB_X, CRAB_Y);
+      if (muted) drawMuteIcon();   // 静音时盖一层右下角图标（每次螃蟹帧覆盖了整屏）
     }
     need_redraw = false;
   }

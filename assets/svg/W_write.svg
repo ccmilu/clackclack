@@ -97,7 +97,7 @@
   </defs>
 
   <!-- 状态背景：浅蓝（Material Blue 50） -->
-  <rect x="-15" y="-25" width="90" height="45" fill="#E3F2FD"/>
+  <rect x="-15" y="-25" width="90" height="45" fill="#BBDEFB"/>
 
   <!--
     放大组：与 D 状态完全一致的 transform，状态切换时螃蟹位置不变。

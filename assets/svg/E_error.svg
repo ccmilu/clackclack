@@ -57,7 +57,7 @@
   </defs>
 
   <!-- 状态背景：浅粉（Material Red 50） -->
-  <rect x="-15" y="-25" width="90" height="45" fill="#FFEBEE"/>
+  <rect x="-15" y="-25" width="90" height="45" fill="#FFCDD2"/>
 
   <!--
     放大组：螃蟹 + 烟雾 + 地影整体 scale 2.5x。

@@ -24,16 +24,18 @@ from datetime import datetime
 from pathlib import Path
 
 # 事件 → 单字符指令（与 ESP32 固件 claude_status.ino 的状态约定对齐）
-#   user_prompt    用户提交输入        → T 思考（AI 开始处理新请求）
-#   pre_write_tool AI 即将编辑代码     → W 写代码（Edit/Write/MultiEdit/NotebookEdit）
-#   stop           Claude 输出停止     → D 完成（蹦一下电磁铁 + 上行音）
-#                                       固件会在 D 状态保持几秒后自动转 I 空闲
-#   notification   Claude 弹窗等用户   → D 完成（重置 D 计时器，再次蹦一下）
+#   user_prompt        用户提交输入             → T 思考
+#   pre_write_tool     AI 即将编辑代码          → W 写代码
+#   permission_request AI 等用户批准敏感操作    → N 紧急召唤（电磁铁急促颤抖 + 叮叮）
+#   stop               Claude 输出停止          → D 完成
+#   notification       Claude 弹窗等用户        → D 完成
+# 注：Bash 工具的 PreToolUse 不映射——AI 跑命令太频繁，每次都切状态会很烦
 EVENT_TO_CMD = {
-    "user_prompt":    "T",
-    "pre_write_tool": "W",
-    "stop":           "D",
-    "notification":   "D",
+    "user_prompt":        "T",
+    "pre_write_tool":     "W",
+    "permission_request": "N",
+    "stop":               "D",
+    "notification":       "D",
 }
 
 # 日志文件：放在脚本所在目录（即插件目录），与项目无关

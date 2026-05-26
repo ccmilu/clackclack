@@ -91,7 +91,7 @@
   </defs>
 
   <!-- 状态背景：浅绿（Material Green 50） -->
-  <rect x="-15" y="-25" width="90" height="45" fill="#E8F5E9"/>
+  <rect x="-15" y="-25" width="90" height="45" fill="#C8E6C9"/>
 
   <!--
     放大组：scale 2.4（接近 T 的 2.4，视觉尺寸一致）+ 偏左布局。

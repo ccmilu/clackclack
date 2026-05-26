@@ -99,7 +99,7 @@
   </defs>
 
   <!-- 状态背景：浅橙（Material Orange 50） -->
-  <rect x="-15" y="-25" width="90" height="45" fill="#FFF3E0"/>
+  <rect x="-15" y="-25" width="90" height="45" fill="#FFE0B2"/>
 
   <!--
     放大组：与 D/W 一致的 transform，状态切换螃蟹位置不变。

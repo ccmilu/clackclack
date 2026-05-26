@@ -54,7 +54,7 @@
   </defs>
 
   <!-- 状态背景：浅蓝灰（同 I_idle.svg，保证 intro→loop 切换背景色不变） -->
-  <rect x="-15" y="-25" width="90" height="45" fill="#ECEFF1"/>
+  <rect x="-15" y="-25" width="90" height="45" fill="#CFD8DC"/>
 
   <!-- 和 I_idle.svg 完全一致的 ty=-29，保证 intro→loop 切换螃蟹位置不跳 -->
   <g transform="translate(-11.25, -29) scale(2.5)">

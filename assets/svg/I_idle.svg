@@ -116,7 +116,7 @@
   </defs>
 
   <!-- 状态背景：浅蓝灰（Material Blue Grey 50） -->
-  <rect x="-15" y="-25" width="90" height="45" fill="#ECEFF1"/>
+  <rect x="-15" y="-25" width="90" height="45" fill="#CFD8DC"/>
 
   <!--
     放大组：和 E 状态保持完全一致的布局参数（translate -11.25 -32.5, scale 2.5）
