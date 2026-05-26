@@ -1,5 +1,11 @@
 # 运行时产物
 **/events.log
+**/bridge.log
+**/bridge.stdout.log
+**/bridge.stderr.log
+
+# daemon 生成的 helper .app（osacompile 编译产物，每台机器首次启动时自动生成）
+**/KeyReturn.app/
 
 # 自动生成的 Arduino 头文件（由 build_h.py 从 build/crab_data.py 转出）
 Arduino/claude_status/crab_data.h

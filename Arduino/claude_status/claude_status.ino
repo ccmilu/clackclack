@@ -20,6 +20,10 @@
 
   特殊操作：
     长按按钮 = 切换静音模式（电磁铁 + 蜂鸣器关闭，屏继续显示）
+    短按按钮 = 上报 PRESS 到串口（由 Mac 端 daemon 监听后用 CGEvent 模拟回车，
+              详见 xiaoke-local-plugin/daemon/bridge.py）
+  注：ESP32-C3 硬件是 USB-Serial-JTAG 专用外设，不支持 TinyUSB / HID，
+     所以"按钮直接当键盘"的方案做不了，必须走 Mac daemon 模拟按键。
 */
 
 #include <Adafruit_GFX.h>
