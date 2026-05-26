@@ -20,14 +20,14 @@ from ocp_vscode import show
 import math
 
 # ============ 整体尺寸 ============
-W = 60
-D = 50
-BASE_H = 55
-BAY_H = 42
-TOP_H = 30
+W = 55        # 缩减（原 60）：让总体积 ≤ 70cm³
+D = 45        # 缩减（原 50）：让总体积 ≤ 70cm³
+BASE_H = 40   # 缩减（原 55）：让总 H ≤ 100mm 嘉立创免费打印
+BAY_H = 38    # 缩减（原 42）
+TOP_H = 20    # 缩减（原 30）
 TILT_ANGLE = 20
 PROTRUDE = BAY_H * math.tan(math.radians(TILT_ANGLE))
-WALL = 2.5
+WALL = 2.0    # 主壁厚（嘉立创推荐 2mm，从 2.5 减薄省体积）
 H = BASE_H + BAY_H + TOP_H
 FILLET_R = 2
 
@@ -117,7 +117,7 @@ BTN_FIX_SCREW_D = 2.5
 BTN_FIX_X_DIST = 13    # 螺丝 X 距按钮中心 13mm（让按钮可调 ±5mm + 螺丝离边缘 1.75mm）
 
 # 支撑柱：从 case 顶板内表面伸下到 holder 顶（绕过 U 形框两侧）
-SUPPORT_PILLAR_W = 3
+SUPPORT_PILLAR_W = 5     # 加粗到 5mm（之前 3mm 长宽比太大，易变形）
 SUPPORT_TOP_Z = H - WALL
 SUPPORT_BOT_Z = BTN_HOLDER_TOP_Z
 SUPPORT_H = SUPPORT_TOP_Z - SUPPORT_BOT_Z                    # 38
@@ -127,7 +127,7 @@ SUPPORT_CENTER_Z = (SUPPORT_TOP_Z + SUPPORT_BOT_Z) / 2
 TOP_HOLE_D = 8               # 电磁铁前柱直径，没有余量（紧贴）
 USB_W = 14
 USB_HOLE_H = 9
-USB_Z = 20
+USB_Z = 14    # ESP32 USB 中心距 case 底面（用户实测）
 
 # ============ 主体侧视轮廓 ============
 profile = [
@@ -273,7 +273,7 @@ clamp_screw_holes = (
 clamp_support_y_min = SOL_Y_CENTER + SOL_H/2 + CLAMP_T   # 9.75
 clamp_support_y_max = D/2 - WALL                          # 22.5
 clamp_support_y_length = clamp_support_y_max - clamp_support_y_min  # 12.75
-clamp_support_d = 6                                       # 柱外径（壁厚 1.75mm，≥ 1.2mm 安全）
+clamp_support_d = 7                                       # 柱外径（壁厚 2.25mm，满足嘉立创空心柱壁厚 > 2mm）
 
 clamp_support_top = (
     cq.Workplane("XY")
@@ -314,7 +314,7 @@ case = (
 # ============ 拆装机制：4 角螺丝柱 + Y 切前后分壳 ============
 # 4 个螺丝柱在 case 4 角内部，沿 Y 方向贯穿（前壳到后壳）
 # M2x50 长螺丝 + M2 螺母固定
-SCREW_PILLAR_D = 6                                              # 柱外径（壁厚 1.75mm，≥ 1.2mm 安全）
+SCREW_PILLAR_D = 7                                              # 柱外径（壁厚 2.25mm，满足嘉立创空心柱壁厚 > 2mm）
 SCREW_HOLE_D = 2.5                                              # M2 通孔（带余量）
 SCREW_PILLAR_X = W/2 - WALL - SCREW_PILLAR_D/2 - 1              # 24
 SCREW_PILLAR_Z_BOT = WALL + SCREW_PILLAR_D/2 + 1                # 6
@@ -376,6 +376,14 @@ show(
     front_half.translate((0, -30, 0)),
     rear_half.translate((0, 30, 0)),
 )
+
+# 计算体积（mm³ → cm³）
+front_vol = front_half.val().Volume() / 1000
+rear_vol = rear_half.val().Volume() / 1000
+total_vol = front_vol + rear_vol
+print(f"前壳体积: {front_vol:.2f} cm³")
+print(f"后壳体积: {rear_vol:.2f} cm³")
+print(f"总体积:   {total_vol:.2f} cm³  (嘉立创免费券限制 ≤ 70)")
 
 # ============ 导出 STL（要导出时把 EXPORT_STL 改为 True，重跑一次）============
 EXPORT_STL = True

@@ -1,0 +1,9 @@
+{
+  "name": "xiaoke-physical-statemachine",
+  "version": "0.1.0",
+  "description": "把 Claude Code 的运行状态映射到桌面 ESP32 装置：TFT 屏（6 状态像素螃蟹动画）+ 电磁铁推杆（PWM 节奏）+ 蜂鸣器（音效）+ 微动开关（互动）。Mac 端通过 hook 监听 Claude Code 事件 → 串口指令 → ESP32",
+  "author": {
+    "name": "Jason"
+  },
+  "homepage": "https://github.com/your-username/xiaoke-physical-statemachine"
+}

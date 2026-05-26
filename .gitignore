@@ -1,5 +1,8 @@
 # 运行时产物
-hooks/events.log
+**/events.log
+
+# 自动生成的 Arduino 头文件（由 build_h.py 从 build/crab_data.py 转出）
+Arduino/claude_status/crab_data.h
 
 # 构建产物（资产管线生成的像素数据 + 调试 PNG，由 build_assets.py 重新生成）
 build/
@@ -18,9 +21,3 @@ __pycache__/
 # 编辑器
 .vscode/
 .idea/
-
-# CAD 构建产物（由 case_v1.py 重新生成）
-cad/*.stl
-
-# Claude Code 个人 skill 配置
-.claude/skills/

@@ -1,0 +1,13 @@
+{
+  "name": "xiaoke-local-plugin",
+  "owner": {
+    "name": "Jason"
+  },
+  "plugins": [
+    {
+      "name": "xiaoke-physical-statemachine",
+      "source": "./",
+      "description": "Claude Code 物理状态机：把 6 状态映射到 ESP32 + TFT 屏 + 电磁铁 + 蜂鸣器"
+    }
+  ]
+}
