@@ -43,7 +43,11 @@ from pathlib import Path
 
 
 # ============ 配置 ============
-LABEL        = "com.xiaoke.bridge"
+LABEL        = "com.xiaoke.bridge.v2"
+# v2 是为了和老用户的旧 Label 区分，配合 cmd_install() 里的迁移代码把旧 plist 清干净。
+# 老版本 plist 的 stdout/stderr 写在中文路径下，launchd spawn 前 open(O_CREAT) 失败、
+# 进程从未启动 → 留下一堆 exit 78 + 空 stderr 的尸体，换 Label 顺便复位 launchctl 计数。
+LEGACY_LABEL = "com.xiaoke.bridge"
 SOCKET_PATH  = "/tmp/xiaoke-bridge.sock"
 # 版本指纹文件：daemon 启动时写入自身源码 mtime，hook 读它和当前 bridge.py 的 mtime 比对，
 # 不一致就说明 daemon 在跑旧代码 → hook 异步触发 --reinstall 让 launchd 拉起新版。
@@ -312,13 +316,16 @@ def generate_plist_content() -> str:
     bridge_py = Path(__file__).resolve()
     work_dir  = bridge_py.parent
     python    = find_python_with_pyserial()
+    # stdout/stderr 必须用 ASCII 路径——launchd 在 spawn 前要 open(O_CREAT) 这两个文件
+    # 作为子进程 fd 1/2，对含中文/特殊字符的路径 open 会失败，导致 spawn exit 78 且
+    # stderr 完全空（连 Python 都没启动）。daemon 主日志仍写 bridge.log（在项目内）。
     return PLIST_TEMPLATE.format(
         label     = LABEL,
         python    = python,
         bridge_py = str(bridge_py),
         work_dir  = str(work_dir),
-        stdout    = str(work_dir / "bridge.stdout.log"),
-        stderr    = str(work_dir / "bridge.stderr.log"),
+        stdout    = f"/tmp/{LABEL}.stdout.log",
+        stderr    = f"/tmp/{LABEL}.stderr.log",
     )
 
 
@@ -347,6 +354,18 @@ def cmd_install() -> int:
     """生成 plist + 加载启动。已存在的会被覆盖+重新加载。"""
     # 顺便保证 helper app 编译好（首次按按钮就能用 KeyReturn.app 而不是 osascript）
     ensure_helper_app()
+
+    # 旧 Label 迁移：bootout + 删除旧 plist。launchd 对反复失败的 Label 会永久 throttle，
+    # 而该状态在内部，bootout/重装都清不掉，残留还会持续耗 launchd 重试预算。
+    uid = os.getuid()
+    legacy_plist = LAUNCH_AGENT_DIR / f"{LEGACY_LABEL}.plist"
+    if legacy_plist.exists():
+        launchctl("bootout", f"gui/{uid}", str(legacy_plist))
+        try:
+            legacy_plist.unlink()
+            log(f"LEGACY_PLIST_REMOVED  {legacy_plist}")
+        except Exception as e:
+            log(f"LEGACY_PLIST_REMOVE_FAIL  err={e}")
 
     print(f"[install] writing {PLIST_PATH}")
     LAUNCH_AGENT_DIR.mkdir(parents=True, exist_ok=True)
