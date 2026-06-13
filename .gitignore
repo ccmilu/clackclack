@@ -13,25 +13,16 @@ Arduino/claude_status/crab_data.h
 # 构建产物（资产管线生成的像素数据 + 调试 PNG，由 build_assets.py 重新生成）
 build/
 
-# 本地 Claude Code 个人设置（包含端口等机器相关配置时）
-.claude/settings.local.json
+# CAD 生成的 STL（由 cad/case_v1.py 生成）
+cad/*.stl
 
-# 项目内部的设计文档 / 复盘 / Claude Code 项目指令——不公开
-# 这些是开发过程中的 internal notes，README 里已经摘了对外用户需要的部分
+
+/.claude/
 /CLAUDE.md
 /docs/
-
-# 第三方 skill（用户自己装的本地 Claude Code skill）
-.claude/skills/
-
-# Python
 __pycache__/
 *.pyc
 .venv/
-
-# macOS
 .DS_Store
-
-# 编辑器
 .vscode/
 .idea/

@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/physical-status.py\" notification",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/physical-status.py\" notification || true",
             "timeout": 5
           }
         ]
@@ -18,7 +18,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/physical-status.py\" stop",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/physical-status.py\" stop || true",
             "timeout": 5
           }
         ]
@@ -30,7 +30,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/physical-status.py\" user_prompt",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/physical-status.py\" user_prompt || true",
             "timeout": 5
           }
         ]
@@ -42,7 +42,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/physical-status.py\" pre_write_tool",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/physical-status.py\" pre_write_tool || true",
             "timeout": 5
           }
         ]
@@ -54,7 +54,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/physical-status.py\" permission_request",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/physical-status.py\" permission_request || true",
             "timeout": 5
           }
         ]

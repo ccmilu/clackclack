@@ -13,6 +13,7 @@ struct MagStep {
 struct MagPattern {
   const MagStep* steps;
   uint16_t count;
+  bool loop;              // false = 整段播完即停；true = 循环
 };
 
 struct BuzzNote {

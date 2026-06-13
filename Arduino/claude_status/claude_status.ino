@@ -65,11 +65,11 @@ Adafruit_ST7735 tft(&SPI, TFT_CS, TFT_DC, TFT_RST);
 // 设计原则：电磁铁是"强提醒"信号，只在需要用户介入的状态触发（N/D/E）。
 // T 思考 / W 写代码 / I 空闲 是 AI 自己干活，电磁铁完全静止，避免持续打扰。
 
-// N 状态（紧急召唤）：3 短脉冲 + 1 长脉冲 = "咔咔咔 咔——"，播一次后长静止。
+// N 状态（紧急召唤）：3 短脉冲 + 1 长脉冲 = "咔咔咔 咔——"，播一次即停。
 // 时长与 N_melody 完全对齐（30ms 电磁铁 ←→ 30ms 短叮，250ms 电磁铁 ←→ 250ms 长咚）
-// 60 秒后才循环回去再蹦一次（类似 D 的处理）：用户长时间不响应时也偶尔提醒。
+// MAG_PATTERNS 里设 loop=false，整段 540ms 播完后电磁铁保持静止，不再循环骚扰用户。
 const MagStep N_steps[] = {
-  {30, 255}, {60, 0}, {30, 255}, {60, 0}, {30, 255}, {80, 0}, {250, 255}, {60000, 0},
+  {30, 255}, {60, 0}, {30, 255}, {60, 0}, {30, 255}, {80, 0}, {250, 255},
 };
 
 // D 状态（完成报告）：和马里奥金币音"叮~咚"完全同步（前短后长）。
@@ -87,12 +87,12 @@ const MagStep E_steps[] = {
 };
 
 const MagPattern MAG_PATTERNS[] = {
-  {nullptr, 0},  // T 思考：静止
-  {nullptr, 0},  // W 写代码：静止
-  {N_steps, sizeof(N_steps)/sizeof(MagStep)},
-  {D_steps, sizeof(D_steps)/sizeof(MagStep)},
-  {E_steps, sizeof(E_steps)/sizeof(MagStep)},
-  {nullptr, 0},  // I 空闲：静止
+  {nullptr, 0, false},  // T 思考：静止
+  {nullptr, 0, false},  // W 写代码：静止
+  {N_steps, sizeof(N_steps)/sizeof(MagStep), false},  // N：只蹦一次（与蜂鸣器对齐）
+  {D_steps, sizeof(D_steps)/sizeof(MagStep), true},   // D：循环（实际有 6s 自动转 I 兜底，只播一轮）
+  {E_steps, sizeof(E_steps)/sizeof(MagStep), true},   // E：报错持续提醒，每 3.4s 蹦一次
+  {nullptr, 0, false},  // I 空闲：静止
 };
 const char MAG_IDS[] = "TWNDEI";
 
@@ -434,7 +434,17 @@ void tickMagnet() {
   unsigned long now = millis();
   const MagStep& step = mag_pattern->steps[mag_step_idx];
   if (now - mag_step_start >= step.duration_ms) {
-    mag_step_idx = (mag_step_idx + 1) % mag_pattern->count;
+    mag_step_idx++;
+    if (mag_step_idx >= mag_pattern->count) {
+      if (mag_pattern->loop) {
+        mag_step_idx = 0;
+      } else {
+        // 整段播完即停：断电 + 清掉 pattern，避免下一次 tick 再进来
+        magnetSet(0);
+        mag_pattern = nullptr;
+        return;
+      }
+    }
     magnetSet(mag_pattern->steps[mag_step_idx].duty);
     mag_step_start = now;
   }
