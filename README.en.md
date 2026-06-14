@@ -39,7 +39,7 @@ A physical interface for Claude Code — see, hear, and touch your AI's state.
 
 ### Press the hardware button to auto-confirm permission dialogs
 
-https://github.com/user-attachments/assets/67e9e749-9b0e-4c4a-aaa3-45757be22f63
+https://github.com/user-attachments/assets/70b19a68-acc1-435b-9e66-2c794844b46d
 
 ### 6 states mapped to Claude Code's workflow
 
