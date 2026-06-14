@@ -16,6 +16,9 @@ build/
 # CAD 生成的 STL（由 cad/case_v1.py 生成）
 cad/*.stl
 
+# 本机自用脚本（含本人 gh 操作 / 录制工具等，不入 git）
+scripts/
+
 
 /.claude/
 /CLAUDE.md
