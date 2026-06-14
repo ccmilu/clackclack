@@ -2,8 +2,6 @@
 
 # ClackClack
 
-### *小克物理状态机*
-
 A physical interface for Claude Code — see, hear, and touch your AI's state.
 
 [![License: GPL v3](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE)
@@ -17,11 +15,11 @@ A physical interface for Claude Code — see, hear, and touch your AI's state.
 
 <table>
   <tr>
-    <td align="center" valign="middle">
-      <img src="assets/media/photos/assembled.jpg" width="280" alt="Assembled ClackClack" />
+    <td align="center" valign="middle" width="50%">
+      <img src="assets/media/photos/assembled.jpg" width="320" alt="Assembled ClackClack" />
     </td>
-    <td align="center" valign="middle">
-      <img src="assets/media/screens/6_states_loop.gif" width="520" alt="6-state screen animation loop" />
+    <td align="center" valign="middle" width="50%">
+      <img src="assets/media/screens/6_states_loop.gif" width="320" alt="6-state screen animation loop" />
     </td>
   </tr>
 </table>
@@ -34,14 +32,14 @@ A physical interface for Claude Code — see, hear, and touch your AI's state.
 
 |  |  |  |
 |:---:|:---:|:---:|
-| 🦀 **State at a glance** | 🔘 **One-button approval** | 🪟 **Cross-desktop focus** |
-| 6 screen animations + magnet thump + buzzer melody — see what your AI is up to without looking | Press the physical button to auto-confirm Claude Code's permission dialog, no need to switch back | Even when focus is on another window or another macOS Space, the button precisely raises the right terminal |
+| 🦀 **State at a glance** | 🔘 **One-button approval** | ↩️ **No manual switching** |
+| 6 screen animations + magnet thump + buzzer melody — see what your AI is up to without looking | Press the physical button, the daemon simulates Enter and confirms the permission dialog for you | Wherever your focus is — another app, another macOS Space — one press jumps to the terminal, confirms, then returns you to what you were doing |
 
 ## 🎬 Demo
 
 ### Press the hardware button to auto-confirm permission dialogs
 
-https://github.com/user-attachments/assets/2f16e48c-3257-404d-8996-ac9e679ca264
+https://github.com/user-attachments/assets/67e9e749-9b0e-4c4a-aaa3-45757be22f63
 
 ### 6 states mapped to Claude Code's workflow
 

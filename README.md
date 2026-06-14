@@ -17,11 +17,11 @@
 
 <table>
   <tr>
-    <td align="center" valign="middle">
-      <img src="assets/media/photos/assembled.jpg" width="280" alt="组装好的小克" />
+    <td align="center" valign="middle" width="50%">
+      <img src="assets/media/photos/assembled.jpg" width="320" alt="组装好的小克" />
     </td>
-    <td align="center" valign="middle">
-      <img src="assets/media/screens/6_states_loop.gif" width="520" alt="6 状态屏幕动画轮播" />
+    <td align="center" valign="middle" width="50%">
+      <img src="assets/media/screens/6_states_loop.gif" width="320" alt="6 状态屏幕动画轮播" />
     </td>
   </tr>
 </table>
@@ -34,8 +34,8 @@
 
 |  |  |  |
 |:---:|:---:|:---:|
-| 🦀 **状态可视化** | 🔘 **一键确认权限** | 🪟 **跨桌面切窗** |
-| 6 种屏幕动画 + 电磁铁推杆 + 蜂鸣器旋律，AI 在干什么一眼看到 | 硬件按钮按一下自动 confirm Claude Code 权限弹窗，不用切回去敲回车 | 即使焦点在别的窗口、甚至别的桌面，按按钮也能精确切回原终端 |
+| 🦀 **状态可视化** | 🔘 **一键确认权限** | ↩️ **免手动切窗** |
+| 6 种屏幕动画 + 电磁铁推杆 + 蜂鸣器旋律，AI 在干什么一眼看到 | 硬件按钮按一下，自动模拟回车 confirm 权限弹窗 | 焦点在别的 app、别的桌面都没事——按按钮自动切到终端 confirm，再切回你刚才那个 app |
 
 ## 🎬 Demo
 
