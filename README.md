@@ -41,7 +41,7 @@
 
 ### 按硬件按钮自动确认权限弹窗
 
-https://github.com/user-attachments/assets/2f16e48c-3257-404d-8996-ac9e679ca264
+https://github.com/user-attachments/assets/1f91755a-b59b-479b-8595-82817afa75cd
 
 ### 6 种状态对应 Claude Code 的工作阶段
 
