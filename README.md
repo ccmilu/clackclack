@@ -139,7 +139,7 @@ python test_device.py    # 串口手动切状态，按 1-6 看各状态画面 + 
 ```
 .
 ├── README.md                              # 本文件
-├── LICENSE                                # MIT
+├── LICENSE                                # GPL-3.0
 ├── Arduino/                               # ESP32 固件
 │   ├── claude_status/                     # 整合固件（主，烧这个）
 │   ├── buzzer_test/ magnet_test/ switch_test/ magnet_freq_test/  # 单模块测试
@@ -161,4 +161,6 @@ python test_device.py    # 串口手动切状态，按 1-6 看各状态画面 + 
 
 ## License
 
-MIT，详见 [LICENSE](LICENSE)。
+Copyright (C) 2026 jason
+
+本项目采用 GPL-3.0 协议。
